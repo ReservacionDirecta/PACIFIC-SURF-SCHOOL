@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import EnglishCtas from "./EnglishCtas";
+
+const EN_WA_HREF =
+  "https://wa.me/51915168620?text=Hi%20Pacific%20Surf%20School%2C%20I%20want%20to%20book%20a%20surf%20plan%20in%20Barranquito.";
 
 export const metadata: Metadata = {
   title:
@@ -23,19 +27,7 @@ export default function EnglishPage() {
         For Lima professionals who want consistent progression, simple WhatsApp booking, and local payment through Yape or Plin.
       </p>
 
-      <div className="cta-row">
-        <a
-          className="btn btn-primary"
-          href="https://wa.me/51915168620?text=Hi%20Pacific%20Surf%20School%2C%20I%20want%20to%20book%20a%20surf%20plan%20in%20Barranquito."
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Book on WhatsApp
-        </a>
-        <a className="btn btn-secondary" href="/">
-          Ver version en Espanol
-        </a>
-      </div>
+      <EnglishCtas primaryHref={EN_WA_HREF} />
 
       <section className="card-section" style={{ marginTop: "2rem" }}>
         <div className="section-head">
@@ -46,12 +38,13 @@ export default function EnglishPage() {
             <p className="badge">Recommended Start</p>
             <h3>4-Class Package</h3>
             <p className="price">
-              S/ 760 <span>(S/ 190 per class)</span>
+              S/ 418 <span>(Group base S/ 110 per class)</span>
             </p>
             <ul>
               <li>Build your technical base</li>
+              <li>5% package discount already applied</li>
               <li>WhatsApp follow-up support</li>
-              <li>Estimated savings vs single sessions</li>
+              <li>Yape/Plin payment support</li>
             </ul>
           </article>
 
@@ -59,15 +52,19 @@ export default function EnglishPage() {
             <p className="badge">Best Value</p>
             <h3>8-Class Package</h3>
             <p className="price">
-              S/ 1,360 <span>(S/ 170 per class)</span>
+              S/ 792 <span>(Group base S/ 110 per class)</span>
             </p>
             <ul>
+              <li>10% package discount already applied</li>
               <li>Accelerated progression and consistency</li>
               <li>Priority scheduling</li>
-              <li>Lower cost per class</li>
+              <li>Fast coordination on WhatsApp</li>
             </ul>
           </article>
         </div>
+        <p style={{ marginTop: "0.8rem", opacity: 0.86 }}>
+          Also available: private classes at S/ 150 per class and extended plans (12/16 classes).
+        </p>
       </section>
     </main>
   );

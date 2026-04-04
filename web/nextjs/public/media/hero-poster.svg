@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="Barranquito sunrise wave">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f2a3d"/>
+      <stop offset="55%" stop-color="#1a4c69"/>
+      <stop offset="100%" stop-color="#f68b1f"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.78" cy="0.22" r="0.28">
+      <stop offset="0%" stop-color="#ffd257" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ffd257" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#sun)"/>
+  <path d="M0 740 C 280 680, 460 760, 720 710 C 960 664, 1210 560, 1520 610 C 1710 640, 1840 700, 1920 730 L1920 1080 L0 1080 Z" fill="#0f2f40" opacity="0.55"/>
+  <path d="M0 810 C 340 760, 520 850, 790 800 C 1050 752, 1270 688, 1600 740 C 1770 770, 1860 810, 1920 840 L1920 1080 L0 1080 Z" fill="#ec008c" opacity="0.42"/>
+</svg>

@@ -4,11 +4,15 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRef } from "react";
 import { trackEvent } from "./lib/analytics";
 
-const HERO_VIDEO_ID = process.env.NEXT_PUBLIC_HERO_VIDEO_ID || "dQw4w9WgXcQ";
-const HERO_POSTER = `https://img.youtube.com/vi/${HERO_VIDEO_ID}/hqdefault.jpg`;
-const HERO_EMBED = `https://www.youtube-nocookie.com/embed/${HERO_VIDEO_ID}?autoplay=1&mute=1&controls=0&loop=1&playlist=${HERO_VIDEO_ID}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`;
-const STORY_VIDEO_ID = process.env.NEXT_PUBLIC_STORY_VIDEO_ID || HERO_VIDEO_ID;
-const STORY_EMBED = `https://www.youtube-nocookie.com/embed/${STORY_VIDEO_ID}?autoplay=1&mute=1&controls=0&loop=1&playlist=${STORY_VIDEO_ID}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`;
+const HERO_VIDEO_ID = (process.env.NEXT_PUBLIC_HERO_VIDEO_ID || "7gWl1-k6QpE").trim();
+const HERO_POSTER = process.env.NEXT_PUBLIC_HERO_POSTER || "/media/hero-poster.svg";
+const HERO_EMBED = HERO_VIDEO_ID
+  ? `https://www.youtube-nocookie.com/embed/${HERO_VIDEO_ID}?autoplay=1&mute=1&controls=0&loop=1&playlist=${HERO_VIDEO_ID}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`
+  : "";
+const STORY_VIDEO_ID = (process.env.NEXT_PUBLIC_STORY_VIDEO_ID || HERO_VIDEO_ID).trim();
+const STORY_EMBED = STORY_VIDEO_ID
+  ? `https://www.youtube-nocookie.com/embed/${STORY_VIDEO_ID}?autoplay=1&mute=1&controls=0&loop=1&playlist=${STORY_VIDEO_ID}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`
+  : "";
 
 const GROUP_RATE = 110;
 const PRIVATE_RATE = 150;
@@ -24,27 +28,27 @@ const weekdayOptions = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sa
 
 const galleryImages = [
   {
-    src: "https://picsum.photos/id/1011/1280/1700",
+    src: "/media/session-a.svg",
     alt: "Alumno practicando take off en Barranquito",
   },
   {
-    src: "https://picsum.photos/id/1003/1600/980",
+    src: "/media/session-b.svg",
     alt: "Vista abierta del mar en Costa Verde durante clase",
   },
   {
-    src: "https://picsum.photos/id/1015/1200/1500",
+    src: "/media/session-c.svg",
     alt: "Instructor corrigiendo postura antes de entrar al agua",
   },
   {
-    src: "https://picsum.photos/id/1025/1300/900",
+    src: "/media/session-a.svg",
     alt: "Alumno sonriendo despues de una buena ola",
   },
   {
-    src: "https://picsum.photos/id/1016/1000/1450",
+    src: "/media/session-b.svg",
     alt: "Sesion de surf al atardecer en Barranquito",
   },
   {
-    src: "https://picsum.photos/id/1040/1500/1000",
+    src: "/media/session-c.svg",
     alt: "Momento de remada y enfoque tecnico en clase",
   },
 ];
@@ -52,7 +56,7 @@ const galleryImages = [
 const beaches = [
   {
     name: "Barranquito",
-    image: "https://picsum.photos/id/1018/1400/900",
+    image: "/media/session-a.svg",
     alt: "Olas en Barranquito para clase de surf",
     main: true,
     description:
@@ -60,27 +64,27 @@ const beaches = [
   },
   {
     name: "La Pampilla",
-    image: "https://picsum.photos/id/1036/1200/800",
+    image: "/media/session-b.svg",
     alt: "Vista de La Pampilla en la Costa Verde",
   },
   {
     name: "Redondo",
-    image: "https://picsum.photos/id/1056/1200/800",
+    image: "/media/session-c.svg",
     alt: "Playa Redondo en Lima para sesiones de surf",
   },
   {
     name: "Punta Roquitas",
-    image: "https://picsum.photos/id/1020/1200/800",
+    image: "/media/session-a.svg",
     alt: "Zona de Punta Roquitas para practica de surf",
   },
   {
     name: "Triangulo",
-    image: "https://picsum.photos/id/1043/1200/800",
+    image: "/media/session-b.svg",
     alt: "Spot Triangulo con olas en Costa Verde",
   },
   {
     name: "San Bartolo",
-    image: "https://picsum.photos/id/1019/1200/800",
+    image: "/media/session-c.svg",
     alt: "Mar en San Bartolo para clases avanzadas",
   },
 ];
@@ -232,15 +236,17 @@ export default function SurfWellnessLanding() {
       <header className="hero" id="inicio">
         <div className="hero-media" aria-hidden="true">
           <div className="hero-poster" style={{ backgroundImage: `url(${HERO_POSTER})` }} />
-          <iframe
-            ref={heroFrameRef}
-            className="hero-video"
-            src={HERO_EMBED}
-            title="Alumno tomando clase de surf en Barranquito"
-            loading="eager"
-            onLoad={() => syncYoutubePlayer(heroFrameRef.current)}
-            allow="autoplay; encrypted-media; picture-in-picture"
-          />
+          {HERO_EMBED ? (
+            <iframe
+              ref={heroFrameRef}
+              className="hero-video"
+              src={HERO_EMBED}
+              title="Alumno tomando clase de surf en Barranquito"
+              loading="eager"
+              onLoad={() => syncYoutubePlayer(heroFrameRef.current)}
+              allow="autoplay; encrypted-media; picture-in-picture"
+            />
+          ) : null}
           <div className="hero-overlay" />
         </div>
 
@@ -337,15 +343,19 @@ export default function SurfWellnessLanding() {
           </div>
           <div className="story-grid">
             <article className="story-video-wrap">
-              <iframe
-                ref={storyFrameRef}
-                className="story-video"
-                src={STORY_EMBED}
-                title="Sesion real de surf en Pacific Surf School"
-                loading="eager"
-                onLoad={() => syncYoutubePlayer(storyFrameRef.current)}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              />
+              {STORY_EMBED ? (
+                <iframe
+                  ref={storyFrameRef}
+                  className="story-video"
+                  src={STORY_EMBED}
+                  title="Sesion real de surf en Pacific Surf School"
+                  loading="eager"
+                  onLoad={() => syncYoutubePlayer(storyFrameRef.current)}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                />
+              ) : (
+                <img src="/media/hero-poster.svg" alt="Vista de Barranquito para sesiones de surf" loading="lazy" />
+              )}
             </article>
             <div className="media-grid">
               <article className="media-card media-image">
