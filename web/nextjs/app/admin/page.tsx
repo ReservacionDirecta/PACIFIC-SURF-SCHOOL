@@ -30,14 +30,6 @@ const toImageLines = (items: SiteContent["media"]["galleryImages"]): string =>
 const toPricingLines = (items: SiteContent["pricing"]["packages"]): string =>
   items.map((item) => `${item.classes} | ${item.discount}`).join("\n");
 
-const toBeachLines = (items: SiteContent["beaches"]): string =>
-  items
-    .map(
-      (item) =>
-        `${item.name} | ${item.main ? "main" : "sec"} | ${item.image} | ${item.alt} | ${item.level} | ${item.bestWindow} | ${item.googleMapsUrl} | ${item.description} | ${item.tips.join(" ; ")}`
-    )
-    .join("\n");
-
 const parseLines = (value: string): string[] =>
   value
     .split("\n")
@@ -137,46 +129,44 @@ const parsePricingLines = (value: string): SiteContent["pricing"]["packages"] =>
   return parsed.length > 0 ? parsed : defaultSiteContent.pricing.packages;
 };
 
-const parseBeachLines = (value: string): SiteContent["beaches"] => {
-  const parsed = value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [namePart, mainPart, imagePart, altPart, levelPart, bestWindowPart, mapsPart, descriptionPart, tipsPart] =
-        line.split("|");
+const normalizeBeachDrafts = (items: SiteContent["beaches"]): SiteContent["beaches"] => {
+  const cleaned = items
+    .map((item) => ({
+      name: item.name.trim(),
+      main: Boolean(item.main),
+      image: item.image.trim(),
+      alt: item.alt.trim() || `Playa ${item.name.trim()} para clases de surf`,
+      level: item.level.trim() || "Intermedio",
+      bestWindow: item.bestWindow.trim() || "Ventana por confirmar",
+      googleMapsUrl: item.googleMapsUrl.trim(),
+      description: item.description.trim(),
+      tips: item.tips.map((tip) => tip.trim()).filter(Boolean),
+    }))
+    .filter((item) => item.name && item.image && item.description)
+    .map((item) => ({
+      ...item,
+      tips: item.tips.length > 0 ? item.tips : ["Tip pendiente de configuracion."],
+    }));
 
-      const name = (namePart || "").trim();
-      const mainRaw = (mainPart || "").trim().toLowerCase();
-      const image = (imagePart || "").trim();
-      const alt = (altPart || "").trim();
-      const level = (levelPart || "").trim();
-      const bestWindow = (bestWindowPart || "").trim();
-      const googleMapsUrl = (mapsPart || "").trim();
-      const description = (descriptionPart || "").trim();
-      const tips = (tipsPart || "")
-        .split(";")
-        .map((item) => item.trim())
-        .filter(Boolean);
+  if (cleaned.length === 0) return defaultSiteContent.beaches;
+  if (!cleaned.some((item) => item.main)) {
+    cleaned[0] = { ...cleaned[0], main: true };
+  }
 
-      if (!name || !image || !description) return null;
-
-      return {
-        name,
-        main: ["main", "principal", "true", "1", "si"].includes(mainRaw),
-        image,
-        alt: alt || `Playa ${name} para clases de surf`,
-        level: level || "Intermedio",
-        bestWindow: bestWindow || "Ventana por confirmar",
-        googleMapsUrl,
-        description,
-        tips: tips.length > 0 ? tips : ["Tip pendiente de configuracion."],
-      };
-    })
-    .filter((item): item is SiteContent["beaches"][number] => item !== null);
-
-  return parsed.length > 0 ? parsed : defaultSiteContent.beaches;
+  return cleaned;
 };
+
+const createEmptyBeach = (): SiteContent["beaches"][number] => ({
+  name: "",
+  main: false,
+  image: "/media/session-a.svg",
+  alt: "",
+  level: "Intermedio",
+  bestWindow: "",
+  googleMapsUrl: "",
+  description: "",
+  tips: [""],
+});
 
 function MediaPreview({ file }: { file: StoredMediaFile }) {
   const [orientation, setOrientation] = useState<MediaOrientation>("landscape");
@@ -249,7 +239,7 @@ export default function AdminPage() {
   );
   const [imageLines, setImageLines] = useState<string>(toImageLines(initial.media.galleryImages));
   const [pricingLines, setPricingLines] = useState<string>(toPricingLines(initial.pricing.packages));
-  const [beachLines, setBeachLines] = useState<string>(toBeachLines(initial.beaches));
+  const [beachesDraft, setBeachesDraft] = useState<SiteContent["beaches"]>(initial.beaches);
   const [notice, setNotice] = useState<NoticeState>("idle");
   const [noticeMessage, setNoticeMessage] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -266,7 +256,44 @@ export default function AdminPage() {
     setYoutubeGalleryLines(toLines(source.media.youtubeGalleryLinks));
     setImageLines(toImageLines(source.media.galleryImages));
     setPricingLines(toPricingLines(source.pricing.packages));
-    setBeachLines(toBeachLines(source.beaches));
+    setBeachesDraft(source.beaches);
+  };
+
+  const updateBeach = (index: number, updater: (beach: SiteContent["beaches"][number]) => SiteContent["beaches"][number]) => {
+    setBeachesDraft((current) =>
+      current.map((beach, beachIndex) => (beachIndex === index ? updater(beach) : beach))
+    );
+  };
+
+  const setMainBeach = (index: number) => {
+    setBeachesDraft((current) =>
+      current.map((beach, beachIndex) => ({
+        ...beach,
+        main: beachIndex === index,
+      }))
+    );
+  };
+
+  const moveBeach = (index: number, direction: -1 | 1) => {
+    setBeachesDraft((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      const [item] = next.splice(index, 1);
+      next.splice(target, 0, item);
+      return next;
+    });
+  };
+
+  const removeBeach = (index: number) => {
+    setBeachesDraft((current) => {
+      const filtered = current.filter((_, beachIndex) => beachIndex !== index);
+      if (filtered.length === 0) return [createEmptyBeach()];
+      if (!filtered.some((beach) => beach.main)) {
+        filtered[0] = { ...filtered[0], main: true };
+      }
+      return filtered;
+    });
   };
 
   const setSavedNotice = (message: string) => {
@@ -406,7 +433,7 @@ export default function AdminPage() {
     const comparisonRows = parseComparisonLines(comparisonLines);
     const faqItems = parseFaqLines(faqLines);
     const pricingPackages = parsePricingLines(pricingLines);
-    const beaches = parseBeachLines(beachLines);
+    const beaches = normalizeBeachDrafts(beachesDraft);
     const galleryVideos = parseLines(instagramVideoLines).length + parseLines(youtubeGalleryLines).length;
     const galleryImages = parseImageLines(imageLines).length;
 
@@ -478,7 +505,7 @@ export default function AdminPage() {
     heroPointsLines,
     imageLines,
     instagramVideoLines,
-    beachLines,
+    beachesDraft,
     pricingLines,
     testimonialLines,
     youtubeGalleryLines,
@@ -513,7 +540,7 @@ export default function AdminPage() {
       testimonials: parseTestimonialLines(testimonialLines),
       comparisonRows: parseComparisonLines(comparisonLines),
       faqItems: parseFaqLines(faqLines),
-      beaches: parseBeachLines(beachLines),
+      beaches: normalizeBeachDrafts(beachesDraft),
       pricing: {
         groupRate: Number.isFinite(content.pricing.groupRate)
           ? Math.max(1, Math.round(content.pricing.groupRate))
@@ -922,13 +949,131 @@ export default function AdminPage() {
           <h2>Playas (modal de detalle)</h2>
         </div>
         <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
-          Formato por linea: nombre | main/sec | imagen | alt | nivel | mejor ventana | Google Maps URL | descripcion | tip1 ; tip2 ; tip3
+          Editor visual para el modal de playas. Puedes marcar playa principal, ordenar y editar tips por separado.
         </p>
-        <div className="booking-form-grid">
-          <label>
-            Configuracion de playas
-            <textarea rows={10} value={beachLines} onChange={(event) => setBeachLines(event.target.value)} />
-          </label>
+        <div style={{ display: "grid", gap: "0.9rem" }}>
+          {beachesDraft.map((beach, index) => (
+            <article
+              key={`${beach.name || "playa"}-${index}`}
+              style={{
+                border: "1px solid rgba(20,20,20,0.12)",
+                borderRadius: "0.9rem",
+                padding: "0.8rem",
+                background: "rgba(255,255,255,0.85)",
+              }}
+            >
+              <div className="cta-row" style={{ marginTop: 0, marginBottom: "0.6rem" }}>
+                <button className="btn btn-secondary" type="button" onClick={() => moveBeach(index, -1)}>
+                  Subir
+                </button>
+                <button className="btn btn-secondary" type="button" onClick={() => moveBeach(index, 1)}>
+                  Bajar
+                </button>
+                <button className="btn btn-secondary" type="button" onClick={() => setMainBeach(index)}>
+                  {beach.main ? "Principal" : "Marcar principal"}
+                </button>
+                <button className="btn btn-secondary" type="button" onClick={() => removeBeach(index)}>
+                  Eliminar
+                </button>
+              </div>
+
+              <div className="booking-form-grid">
+                <label>
+                  Nombre
+                  <input
+                    type="text"
+                    value={beach.name}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({ ...current, name: event.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Imagen (URL o /media/...)
+                  <input
+                    type="text"
+                    value={beach.image}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({ ...current, image: event.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Alt de imagen
+                  <input
+                    type="text"
+                    value={beach.alt}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({ ...current, alt: event.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Nivel recomendado
+                  <input
+                    type="text"
+                    value={beach.level}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({ ...current, level: event.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Mejor ventana
+                  <input
+                    type="text"
+                    value={beach.bestWindow}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({ ...current, bestWindow: event.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Link Google Maps
+                  <input
+                    type="text"
+                    value={beach.googleMapsUrl}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({ ...current, googleMapsUrl: event.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Descripcion
+                  <textarea
+                    rows={3}
+                    value={beach.description}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({ ...current, description: event.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Tips (1 por linea)
+                  <textarea
+                    rows={4}
+                    value={toLines(beach.tips)}
+                    onChange={(event) =>
+                      updateBeach(index, (current) => ({
+                        ...current,
+                        tips: parseLines(event.target.value),
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+            </article>
+          ))}
+
+          <div>
+            <button
+              className="btn btn-secondary"
+              type="button"
+              onClick={() => setBeachesDraft((current) => [...current, createEmptyBeach()])}
+            >
+              Agregar playa
+            </button>
+          </div>
         </div>
       </section>
 
