@@ -1,0 +1,48 @@
+# Pacific Surf Wellness Landing (Next.js)
+
+Landing mobile-first para Pacific Surf School, orientada a conversion por WhatsApp y venta de paquetes de 4 y 8 clases.
+
+## Requisitos
+- Node.js 20+
+- npm 10+
+
+## Ejecutar en local
+```bash
+npm install
+npm run dev
+```
+
+Abrir en navegador: `http://localhost:3000`
+
+## Build de produccion
+```bash
+npm run build
+npm run start
+```
+
+## Estructura clave
+- `app/layout.tsx`: metadata SEO y layout raiz
+- `app/page.tsx`: pagina principal
+- `app/en/page.tsx`: version EN para trafico internacional
+- `app/globals.css`: sistema visual y responsive
+- `SurfWellnessLanding.tsx`: contenido y CTAs de conversion
+- `lib/analytics.ts`: helper para eventos de conversion
+- `app/sitemap.ts` y `app/robots.ts`: SEO tecnico
+
+## Notas de negocio
+- WhatsApp principal: `+51 915 168 620`
+- Metodo de cierre: conversacion asistida + pago por Yape/Plin
+- Objetivo operativo: responder en menos de 10 minutos
+
+## Mejoras aplicadas (siguientes pasos naturales)
+1. Proyecto ejecutado en local con `npm run dev`.
+2. Next.js actualizado a version parcheada para corregir vulnerabilidad reportada.
+3. Ruta bilingue agregada en `/en` con metadata en ingles.
+4. Eventos de analitica agregados en CTAs clave de WhatsApp.
+5. SEO tecnico agregado con `robots.txt` y `sitemap.xml` generados por App Router.
+
+## Eventos de conversion instrumentados
+- `cta_whatsapp_click`
+	- `placement`: `hero` | `pricing` | `final_cta` | `sticky`
+	- `offer`: `plan` | `package_4` | `package_8` | `booking` | `packages`
+	- `locale`: `es`
