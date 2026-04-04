@@ -25,6 +25,11 @@ const packagePlans = [
   { classes: 16, discount: 0.2 },
 ];
 const weekdayOptions = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
+const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/pacific_surfschool/";
+const INSTAGRAM_POST_URLS = (process.env.NEXT_PUBLIC_INSTAGRAM_POST_URLS || "")
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
 
 const galleryImages = [
   {
@@ -52,6 +57,27 @@ const galleryImages = [
     alt: "Momento de remada y enfoque tecnico en clase",
   },
 ];
+
+type GalleryItem =
+  | {
+      type: "image";
+      src: string;
+      alt: string;
+      imageIndex: number;
+    }
+  | {
+      type: "instagram";
+      alt: string;
+      permalink: string;
+      embedUrl: string;
+    };
+
+const toInstagramEmbedUrl = (url: string): string | null => {
+  const match = url.match(/instagram\.com\/(p|reel)\/([^/?#]+)/i);
+  if (!match) return null;
+  const [, kind, shortcode] = match;
+  return `https://www.instagram.com/${kind.toLowerCase()}/${shortcode}/embed`;
+};
 
 const beaches = [
   {
@@ -176,6 +202,31 @@ export default function SurfWellnessLanding() {
   ].join("\n");
 
   const plannerHref = `https://wa.me/51915168620?text=${encodeURIComponent(plannerMessage)}`;
+
+  const instagramItems = useMemo<GalleryItem[]>(() => {
+    return INSTAGRAM_POST_URLS.map((permalink) => {
+      const embedUrl = toInstagramEmbedUrl(permalink);
+      if (!embedUrl) return null;
+
+      return {
+        type: "instagram",
+        alt: "Video de Instagram de Pacific Surf School",
+        permalink,
+        embedUrl,
+      } as GalleryItem;
+    }).filter((item): item is GalleryItem => item !== null);
+  }, []);
+
+  const galleryItems = useMemo<GalleryItem[]>(() => {
+    const imageItems: GalleryItem[] = galleryImages.map((image, imageIndex) => ({
+      type: "image",
+      src: image.src,
+      alt: image.alt,
+      imageIndex,
+    }));
+
+    return [...instagramItems, ...imageItems];
+  }, [instagramItems]);
 
   const activeImage = useMemo(() => {
     if (activeImageIndex === null) return null;
@@ -382,18 +433,51 @@ export default function SurfWellnessLanding() {
             <p className="eyebrow">Galeria</p>
             <h2>La energia real de cada sesion, en imagenes</h2>
           </div>
+          <p className="gallery-note">
+            Videos publicados desde Instagram. Mira mas contenido en{" "}
+            <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">
+              @pacific_surfschool
+            </a>
+            .
+          </p>
           <div className="gallery-masonry">
-            {galleryImages.map((image, index) => (
-              <button
-                key={image.src}
-                type="button"
-                className="gallery-item"
-                onClick={() => openImage(index)}
-                aria-label={`Abrir imagen ${index + 1} de la galeria`}
-              >
-                <img src={image.src} alt={image.alt} loading="lazy" />
-              </button>
-            ))}
+            {galleryItems.map((item, index) => {
+              if (item.type === "instagram") {
+                return (
+                  <article key={`${item.permalink}-${index}`} className="gallery-item gallery-item-video">
+                    <div className="instagram-frame-wrap">
+                      <iframe
+                        className="instagram-frame"
+                        src={`${item.embedUrl}?utm_source=ig_embed&utm_campaign=loading`}
+                        title={item.alt}
+                        loading="lazy"
+                        allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
+                      />
+                    </div>
+                    <a
+                      className="instagram-link"
+                      href={item.permalink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Ver post en Instagram
+                    </a>
+                  </article>
+                );
+              }
+
+              return (
+                <button
+                  key={`${item.src}-${index}`}
+                  type="button"
+                  className="gallery-item"
+                  onClick={() => openImage(item.imageIndex)}
+                  aria-label={`Abrir imagen ${item.imageIndex + 1} de la galeria`}
+                >
+                  <img src={item.src} alt={item.alt} loading="lazy" />
+                </button>
+              );
+            })}
           </div>
         </section>
 
