@@ -952,28 +952,51 @@ export default function SurfWellnessLanding() {
         </section>
 
         <footer className="section site-footer" id="footer">
-          <div className="footer-brand">
-            <a className="brand-link" href="#inicio" aria-label="Pacific Surf School inicio">
-              <img className="brand-logo" src="/logo.png" alt="Pacific Surf School" />
-              <span className="brand-text" aria-hidden="true">
-                <span className="brand-text-top">PACIFIC</span>
-                <span className="brand-text-bottom">Surf School</span>
-              </span>
-            </a>
-            <p>Escuela de surf premium e independiente en Barranquito, Lima.</p>
+          <div className="footer-main">
+            <div className="footer-brand">
+              <a className="brand-link" href="#inicio" aria-label="Pacific Surf School inicio">
+                <img className="brand-logo" src="/logo.png" alt="Pacific Surf School" />
+                <span className="brand-text" aria-hidden="true">
+                  <span className="brand-text-top">PACIFIC</span>
+                  <span className="brand-text-bottom">Surf School</span>
+                </span>
+              </a>
+              <p className="footer-claim">Surfea mejor, respira mejor, vive mejor en Barranquito.</p>
+              <p className="footer-note">Clases para adultos, niveles inicial e intermedio. Cupos limitados.</p>
+            </div>
+
+            <nav className="footer-nav" aria-label="Navegacion de pie de pagina">
+              <p>Navegacion</p>
+              <a href="#experiencia">Experiencia</a>
+              <a href="#galeria">Galeria</a>
+              <a href="#paquetes">Paquetes</a>
+              <a href="#prueba-social">Testimonios</a>
+            </nav>
+
+            <div className="footer-social">
+              <p>Siguenos</p>
+              <a
+                href={siteContent.media.instagramProfileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCta("footer", "instagram")}
+              >
+                Instagram
+              </a>
+              <a
+                href="https://wa.me/51915168620?text=Hola%20Pacific%20Surf%20School%2C%20quiero%20informacion%20de%20paquetes%20de%20surf."
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCta("footer", "whatsapp")}
+              >
+                WhatsApp
+              </a>
+              <a href="#inicio" onClick={() => trackCta("footer", "home")}>Volver arriba</a>
+            </div>
           </div>
-          <div className="footer-links">
-            <a href="#experiencia">Experiencia</a>
-            <a href="#galeria">Galeria</a>
-            <a href="#paquetes">Paquetes</a>
-            <a
-              href="https://wa.me/51915168620?text=Hola%20Pacific%20Surf%20School%2C%20quiero%20informacion%20de%20paquetes%20de%20surf."
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackCta("footer", "packages")}
-            >
-              WhatsApp
-            </a>
+
+          <div className="footer-legal">
+            <p>© {new Date().getFullYear()} Pacific Surf School. Todos los derechos reservados.</p>
           </div>
         </footer>
       </main>

@@ -3,18 +3,19 @@ import path from "node:path";
 import { defaultSiteContent, mergeWithDefaultSiteContent, type SiteContent } from "./siteContent";
 
 const DATA_DIR = path.join(process.cwd(), "data");
-const LEGACY_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
-const CONTENT_DIR = process.env.CONTENT_STORAGE_ROOT?.trim()
-  ? path.resolve(process.env.CONTENT_STORAGE_ROOT)
-  : process.platform === "win32"
-    ? DATA_DIR
-    : "/storage/cms";
-const CONTENT_FILE = path.join(CONTENT_DIR, "site-content.json");
 const MEDIA_DIR = process.env.MEDIA_STORAGE_ROOT?.trim()
   ? path.resolve(process.env.MEDIA_STORAGE_ROOT)
   : process.platform === "win32"
     ? path.join(DATA_DIR, "media")
     : "/storage/media";
+const LEGACY_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
+const LEGACY_CONTENT_DIR_LINUX = "/storage/cms";
+const CONTENT_DIR = process.env.CONTENT_STORAGE_ROOT?.trim()
+  ? path.resolve(process.env.CONTENT_STORAGE_ROOT)
+  : process.platform === "win32"
+    ? path.join(DATA_DIR, "cms")
+    : path.join(MEDIA_DIR, "cms");
+const CONTENT_FILE = path.join(CONTENT_DIR, "site-content.json");
 
 export type StoredMediaFile = {
   name: string;
@@ -159,6 +160,22 @@ const readContentFile = async (filePath: string): Promise<SiteContent | null> =>
 export const readSiteContent = async (): Promise<SiteContent> => {
   const persisted = await readContentFile(CONTENT_FILE);
   if (persisted) return persisted;
+
+  // Backward compatibility for previous default Linux path.
+  if (process.platform !== "win32") {
+    const oldLinuxPath = path.join(LEGACY_CONTENT_DIR_LINUX, "site-content.json");
+    const oldLinuxContent = await readContentFile(oldLinuxPath);
+    if (oldLinuxContent) {
+      try {
+        await fs.mkdir(CONTENT_DIR, { recursive: true });
+        await fs.writeFile(CONTENT_FILE, JSON.stringify(oldLinuxContent, null, 2), "utf8");
+      } catch {
+        // Ignore migration copy failures and continue serving migrated content.
+      }
+
+      return oldLinuxContent;
+    }
+  }
 
   // Backward compatibility: if the old local file exists, reuse it and persist to the new location.
   const legacy = await readContentFile(LEGACY_CONTENT_FILE);

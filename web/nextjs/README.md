@@ -22,7 +22,7 @@ npm run start
 
 ## Persistencia en Railway
 - Archivos multimedia del CMS: por defecto se guardan en `/storage/media` (Linux).
-- Contenido editable del CMS (`site-content.json`): por defecto se guarda en `/storage/cms` (Linux).
+- Contenido editable del CMS (`site-content.json`): por defecto se guarda en `/storage/media/cms` (Linux).
 - Puedes sobrescribir rutas con variables de entorno:
 	- `MEDIA_STORAGE_ROOT`
 	- `CONTENT_STORAGE_ROOT`

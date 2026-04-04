@@ -1251,22 +1251,27 @@ h1 {
 }
 
 .site-footer {
-  margin-top: 2rem;
+  margin-top: 2.2rem;
   margin-bottom: 7rem;
-  padding: 1.2rem;
+  padding: 1.35rem;
   border-radius: 1rem;
   display: grid;
-  grid-template-columns: 1fr auto;
   gap: 1rem;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(20, 20, 20, 0.1);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(235, 247, 250, 0.9));
+  border: 1px solid rgba(11, 34, 48, 0.14);
   box-shadow: var(--shadow-soft);
+}
+
+.footer-main {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.4fr) minmax(150px, 1fr) minmax(170px, 1fr);
+  gap: 1.2rem;
+  align-items: start;
 }
 
 .footer-brand {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.5rem;
 }
 
 .site-footer .brand-link {
@@ -1282,20 +1287,60 @@ h1 {
   font-size: 0.95rem;
 }
 
-.footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  justify-content: flex-end;
+.footer-claim {
+  font-weight: 800;
+  color: var(--navy-900);
 }
 
-.footer-links a {
+.footer-note {
+  color: rgba(11, 34, 48, 0.78);
+}
+
+.footer-nav,
+.footer-social {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+}
+
+.footer-nav p,
+.footer-social p {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: rgba(11, 34, 48, 0.72);
+}
+
+.footer-nav a,
+.footer-social a {
   text-decoration: none;
   color: var(--navy-900);
-  font-weight: 800;
-  padding: 0.46rem 0.65rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.footer-social a {
+  padding: 0.44rem 0.7rem;
   border-radius: 999px;
-  background: linear-gradient(120deg, rgba(247, 197, 0, 0.28), rgba(236, 0, 140, 0.17));
+  background: linear-gradient(120deg, rgba(247, 197, 0, 0.24), rgba(236, 0, 140, 0.14));
+}
+
+.footer-nav a:hover,
+.footer-social a:hover {
+  transform: translateY(-1px);
+}
+
+.footer-legal {
+  border-top: 1px solid rgba(11, 34, 48, 0.14);
+  padding-top: 0.8rem;
+}
+
+.footer-legal p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(11, 34, 48, 0.7);
 }
 
 .beaches-section {
@@ -1470,11 +1515,17 @@ h1 {
   }
 
   .site-footer {
+    gap: 1rem;
+  }
+
+  .footer-main {
     grid-template-columns: 1fr;
   }
 
-  .footer-links {
-    justify-content: flex-start;
+  .footer-nav,
+  .footer-social {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
 
   .beach-list {
