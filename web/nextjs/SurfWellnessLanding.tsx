@@ -8,16 +8,7 @@ import { defaultSiteContent, type SiteContent } from "./lib/siteContent";
 const HERO_POSTER = process.env.NEXT_PUBLIC_HERO_POSTER || "/media/hero-poster.svg";
 type MediaOrientation = "landscape" | "portrait" | "square";
 
-const GROUP_RATE = 110;
-const PRIVATE_RATE = 150;
 const scheduleSlots = ["6:00", "8:00", "10:00", "4:00"];
-const packagePlans = [
-  { classes: 1, discount: 0 },
-  { classes: 4, discount: 0.05 },
-  { classes: 8, discount: 0.1 },
-  { classes: 12, discount: 0.15 },
-  { classes: 16, discount: 0.2 },
-];
 const weekdayOptions = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
 
 type GalleryItem =
@@ -176,7 +167,10 @@ function GalleryImageCard({ src, alt, onOpen, ariaLabel }: { src: string; alt: s
 export default function SurfWellnessLanding() {
   const [siteContent, setSiteContent] = useState<SiteContent>(defaultSiteContent);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
-  const [selectedPackageClasses, setSelectedPackageClasses] = useState<number>(8);
+  const [selectedPackageClasses, setSelectedPackageClasses] = useState<number>(
+    defaultSiteContent.pricing.packages.find((plan) => plan.classes === 8)?.classes ||
+      defaultSiteContent.pricing.packages[0].classes
+  );
   const [selectedClassType, setSelectedClassType] = useState<"grupal" | "personalizada">("grupal");
   const [planCadence, setPlanCadence] = useState<"consecutivas" | "semanales">("consecutivas");
   const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
@@ -229,12 +223,28 @@ export default function SurfWellnessLanding() {
     trackEvent("cta_whatsapp_click", { placement, offer, locale: "es" });
   };
 
-  const selectedPlan = useMemo(
-    () => packagePlans.find((plan) => plan.classes === selectedPackageClasses) || packagePlans[0],
-    [selectedPackageClasses]
+  const packagePlans = useMemo(
+    () =>
+      [...siteContent.pricing.packages]
+        .filter((plan) => plan.classes >= 1)
+        .sort((left, right) => left.classes - right.classes),
+    [siteContent.pricing.packages]
   );
 
-  const selectedClassRate = selectedClassType === "grupal" ? GROUP_RATE : PRIVATE_RATE;
+  useEffect(() => {
+    const available = packagePlans.some((plan) => plan.classes === selectedPackageClasses);
+    if (!available && packagePlans.length > 0) {
+      setSelectedPackageClasses(packagePlans[0].classes);
+    }
+  }, [packagePlans, selectedPackageClasses]);
+
+  const selectedPlan = useMemo(
+    () => packagePlans.find((plan) => plan.classes === selectedPackageClasses) || packagePlans[0],
+    [packagePlans, selectedPackageClasses]
+  );
+
+  const selectedClassRate =
+    selectedClassType === "grupal" ? siteContent.pricing.groupRate : siteContent.pricing.privateRate;
   const planBase = selectedClassRate * selectedPlan.classes;
   const planFinal = planBase * (1 - selectedPlan.discount);
   const planSavings = planBase - planFinal;
@@ -645,11 +655,11 @@ export default function SurfWellnessLanding() {
           <div className="rates-strip">
             <div className="rate-chip">
               <p>Clase grupal</p>
-              <strong>{toPen(GROUP_RATE)} / clase</strong>
+              <strong>{toPen(siteContent.pricing.groupRate)} / clase</strong>
             </div>
             <div className="rate-chip">
               <p>Clase personalizada</p>
-              <strong>{toPen(PRIVATE_RATE)} / clase</strong>
+              <strong>{toPen(siteContent.pricing.privateRate)} / clase</strong>
             </div>
             <div className="rate-chip rate-chip-schedule">
               <p>Horarios</p>
@@ -681,7 +691,10 @@ export default function SurfWellnessLanding() {
                 <p className="package-group-title">Paquetes con descuento</p>
                 <div className="package-picker-grid">
                   {packagePlans.filter((plan) => plan.classes > 1).map((plan) => {
-                    const packageRate = selectedClassType === "grupal" ? GROUP_RATE : PRIVATE_RATE;
+                    const packageRate =
+                      selectedClassType === "grupal"
+                        ? siteContent.pricing.groupRate
+                        : siteContent.pricing.privateRate;
                     const packageBase = packageRate * plan.classes;
                     const packageFinal = packageBase * (1 - plan.discount);
                     const packageSave = packageBase - packageFinal;
@@ -874,7 +887,7 @@ export default function SurfWellnessLanding() {
           </article>
 
           <p className="disclaimer">
-            Tarifario actualizado: grupal S/.110 y personalizada S/.150 por clase. Descuentos por paquete ya aplicados automaticamente.
+            {`Tarifario actualizado: grupal ${toPen(siteContent.pricing.groupRate)} y personalizada ${toPen(siteContent.pricing.privateRate)} por clase. Descuentos por paquete ya aplicados automaticamente.`}
           </p>
         </section>
 

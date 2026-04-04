@@ -35,6 +35,17 @@ export type FaqItem = {
   answer: string;
 };
 
+export type PricingPackage = {
+  classes: number;
+  discount: number;
+};
+
+export type PricingContent = {
+  groupRate: number;
+  privateRate: number;
+  packages: PricingPackage[];
+};
+
 export type GalleryImage = {
   src: string;
   alt: string;
@@ -53,6 +64,7 @@ export type EditableMediaContent = {
 export type SiteContent = {
   seo: SeoContent;
   texts: EditableTextContent;
+  pricing: PricingContent;
   heroPoints: string[];
   testimonials: Testimonial[];
   comparisonRows: ComparisonRow[];
@@ -109,6 +121,17 @@ export const defaultSiteContent: SiteContent = {
     finalCtaBody:
       "Escribenos por WhatsApp, recibe recomendacion en minutos y asegura tu horario en Barranquito.",
     finalCtaButton: "Reservar por WhatsApp ahora",
+  },
+  pricing: {
+    groupRate: 110,
+    privateRate: 150,
+    packages: [
+      { classes: 1, discount: 0 },
+      { classes: 4, discount: 0.05 },
+      { classes: 8, discount: 0.1 },
+      { classes: 12, discount: 0.15 },
+      { classes: 16, discount: 0.2 },
+    ],
   },
   heroPoints: [
     "Horarios que si calzan con tu semana: 6:00, 8:00, 10:00 y 4:00",
@@ -188,12 +211,31 @@ const normalizeImages = (input: unknown): GalleryImage[] => {
   return normalized.length > 0 ? normalized : defaultGalleryImages;
 };
 
+const normalizePricingPackages = (input: unknown): PricingPackage[] => {
+  if (!Array.isArray(input)) return defaultSiteContent.pricing.packages;
+
+  const normalized = input
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const classes = Number((item as { classes?: unknown }).classes);
+      const discount = Number((item as { discount?: unknown }).discount);
+      if (!Number.isFinite(classes) || classes < 1) return null;
+      if (!Number.isFinite(discount) || discount < 0 || discount >= 1) return null;
+      return { classes: Math.round(classes), discount };
+    })
+    .filter((item): item is PricingPackage => item !== null)
+    .sort((left, right) => left.classes - right.classes);
+
+  return normalized.length > 0 ? normalized : defaultSiteContent.pricing.packages;
+};
+
 export const mergeWithDefaultSiteContent = (input: unknown): SiteContent => {
   if (!input || typeof input !== "object") return defaultSiteContent;
 
   const raw = input as {
     seo?: Partial<SeoContent>;
     texts?: Partial<EditableTextContent>;
+    pricing?: Partial<PricingContent>;
     heroPoints?: unknown;
     testimonials?: unknown;
     comparisonRows?: unknown;
@@ -263,6 +305,17 @@ export const mergeWithDefaultSiteContent = (input: unknown): SiteContent => {
       finalCtaTitle: String(raw.texts?.finalCtaTitle || defaultSiteContent.texts.finalCtaTitle),
       finalCtaBody: String(raw.texts?.finalCtaBody || defaultSiteContent.texts.finalCtaBody),
       finalCtaButton: String(raw.texts?.finalCtaButton || defaultSiteContent.texts.finalCtaButton),
+    },
+    pricing: {
+      groupRate:
+        Number.isFinite(Number(raw.pricing?.groupRate)) && Number(raw.pricing?.groupRate) > 0
+          ? Number(raw.pricing?.groupRate)
+          : defaultSiteContent.pricing.groupRate,
+      privateRate:
+        Number.isFinite(Number(raw.pricing?.privateRate)) && Number(raw.pricing?.privateRate) > 0
+          ? Number(raw.pricing?.privateRate)
+          : defaultSiteContent.pricing.privateRate,
+      packages: normalizePricingPackages(raw.pricing?.packages),
     },
     heroPoints: heroPoints.length > 0 ? heroPoints : defaultSiteContent.heroPoints,
     testimonials: testimonials.length > 0 ? testimonials : defaultSiteContent.testimonials,

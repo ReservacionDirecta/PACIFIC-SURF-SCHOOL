@@ -27,6 +27,9 @@ const toFaqLines = (items: SiteContent["faqItems"]): string =>
 const toImageLines = (items: SiteContent["media"]["galleryImages"]): string =>
   items.map((item) => `${item.src} | ${item.alt}`).join("\n");
 
+const toPricingLines = (items: SiteContent["pricing"]["packages"]): string =>
+  items.map((item) => `${item.classes} | ${item.discount}`).join("\n");
+
 const parseLines = (value: string): string[] =>
   value
     .split("\n")
@@ -102,6 +105,30 @@ const parseFaqLines = (value: string): SiteContent["faqItems"] => {
   return parsed.length > 0 ? parsed : defaultSiteContent.faqItems;
 };
 
+const parsePricingLines = (value: string): SiteContent["pricing"]["packages"] => {
+  const parsed = value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [classesPart, discountPart] = line.split("|");
+      const classes = Number.parseInt((classesPart || "").trim(), 10);
+      const discount = Number.parseFloat((discountPart || "").trim());
+
+      if (!Number.isFinite(classes) || classes < 1) return null;
+      if (!Number.isFinite(discount) || discount < 0 || discount >= 1) return null;
+
+      return {
+        classes: Math.round(classes),
+        discount,
+      };
+    })
+    .filter((item): item is SiteContent["pricing"]["packages"][number] => item !== null)
+    .sort((left, right) => left.classes - right.classes);
+
+  return parsed.length > 0 ? parsed : defaultSiteContent.pricing.packages;
+};
+
 function MediaPreview({ file }: { file: StoredMediaFile }) {
   const [orientation, setOrientation] = useState<MediaOrientation>("landscape");
 
@@ -172,6 +199,7 @@ export default function AdminPage() {
     toLines(initial.media.youtubeGalleryLinks)
   );
   const [imageLines, setImageLines] = useState<string>(toImageLines(initial.media.galleryImages));
+  const [pricingLines, setPricingLines] = useState<string>(toPricingLines(initial.pricing.packages));
   const [notice, setNotice] = useState<NoticeState>("idle");
   const [noticeMessage, setNoticeMessage] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -187,6 +215,7 @@ export default function AdminPage() {
     setInstagramVideoLines(toLines(source.media.instagramVideoLinks));
     setYoutubeGalleryLines(toLines(source.media.youtubeGalleryLinks));
     setImageLines(toImageLines(source.media.galleryImages));
+    setPricingLines(toPricingLines(source.pricing.packages));
   };
 
   const setSavedNotice = (message: string) => {
@@ -325,6 +354,7 @@ export default function AdminPage() {
     const testimonials = parseTestimonialLines(testimonialLines);
     const comparisonRows = parseComparisonLines(comparisonLines);
     const faqItems = parseFaqLines(faqLines);
+    const pricingPackages = parsePricingLines(pricingLines);
     const galleryVideos = parseLines(instagramVideoLines).length + parseLines(youtubeGalleryLines).length;
     const galleryImages = parseImageLines(imageLines).length;
 
@@ -362,6 +392,14 @@ export default function AdminPage() {
         ok: faqItems.length >= 3,
       },
       {
+        label: "Tarifas base configuradas",
+        ok: content.pricing.groupRate > 0 && content.pricing.privateRate > 0,
+      },
+      {
+        label: "Paquetes validos para calculo",
+        ok: pricingPackages.some((plan) => plan.classes >= 4) && pricingPackages.length >= 2,
+      },
+      {
         label: "Galeria con al menos 4 medios",
         ok: galleryVideos + galleryImages >= 4,
       },
@@ -369,6 +407,8 @@ export default function AdminPage() {
   }, [
     comparisonLines,
     content.media.heroYoutubeUrl,
+    content.pricing.groupRate,
+    content.pricing.privateRate,
     content.seo.description,
     content.seo.title,
     content.texts.heroLead,
@@ -378,6 +418,7 @@ export default function AdminPage() {
     heroPointsLines,
     imageLines,
     instagramVideoLines,
+    pricingLines,
     testimonialLines,
     youtubeGalleryLines,
   ]);
@@ -411,6 +452,15 @@ export default function AdminPage() {
       testimonials: parseTestimonialLines(testimonialLines),
       comparisonRows: parseComparisonLines(comparisonLines),
       faqItems: parseFaqLines(faqLines),
+      pricing: {
+        groupRate: Number.isFinite(content.pricing.groupRate)
+          ? Math.max(1, Math.round(content.pricing.groupRate))
+          : defaultSiteContent.pricing.groupRate,
+        privateRate: Number.isFinite(content.pricing.privateRate)
+          ? Math.max(1, Math.round(content.pricing.privateRate))
+          : defaultSiteContent.pricing.privateRate,
+        packages: parsePricingLines(pricingLines),
+      },
       media: {
         ...content.media,
         instagramLinks: parseLines(instagramLines),
@@ -748,6 +798,59 @@ export default function AdminPage() {
           <label>
             FAQs (formato: pregunta | respuesta)
             <textarea rows={6} value={faqLines} onChange={(event) => setFaqLines(event.target.value)} />
+          </label>
+        </div>
+      </section>
+
+      <section className="card-section" style={{ marginTop: "1.5rem" }}>
+        <div className="section-head">
+          <h2>Precios y paquetes</h2>
+        </div>
+        <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
+          Estos valores alimentan todos los calculos y mensajes de WhatsApp del cotizador.
+        </p>
+        <div className="booking-form-grid">
+          <label>
+            Tarifa clase grupal (S/.)
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={content.pricing.groupRate}
+              onChange={(event) => {
+                const value = Number.parseInt(event.target.value, 10);
+                setContent((current) => ({
+                  ...current,
+                  pricing: {
+                    ...current.pricing,
+                    groupRate: Number.isFinite(value) ? value : current.pricing.groupRate,
+                  },
+                }));
+              }}
+            />
+          </label>
+          <label>
+            Tarifa clase personalizada (S/.)
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={content.pricing.privateRate}
+              onChange={(event) => {
+                const value = Number.parseInt(event.target.value, 10);
+                setContent((current) => ({
+                  ...current,
+                  pricing: {
+                    ...current.pricing,
+                    privateRate: Number.isFinite(value) ? value : current.pricing.privateRate,
+                  },
+                }));
+              }}
+            />
+          </label>
+          <label>
+            Paquetes (formato: clases | descuento)
+            <textarea rows={6} value={pricingLines} onChange={(event) => setPricingLines(event.target.value)} />
           </label>
         </div>
       </section>
