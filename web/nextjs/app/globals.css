@@ -150,8 +150,12 @@ h3,
 
 .topbar-actions {
   display: flex;
-  gap: 0.42rem;
+  gap: 0.55rem;
   flex-wrap: wrap;
+  padding: 0.24rem;
+  border-radius: 999px;
+  background: rgba(7, 20, 30, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .brand {
@@ -207,26 +211,56 @@ h3,
 }
 
 .link-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: var(--white);
-  background: rgba(7, 20, 30, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  padding: 0.5rem 0.76rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.52rem 0.88rem;
+  min-height: 2.2rem;
   border-radius: 999px;
   font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 4px 10px rgba(3, 14, 22, 0.2);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .link-chip:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.44);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 8px 16px rgba(3, 14, 22, 0.26);
+  transform: translateY(-1px) scale(1.01);
+}
+
+.link-chip:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.82);
+  outline-offset: 2px;
+}
+
+.link-chip:active {
+  transform: translateY(0);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 8px rgba(3, 14, 22, 0.18);
 }
 
 .link-chip-cta {
-  background: linear-gradient(120deg, rgba(247, 197, 0, 0.4), rgba(236, 0, 140, 0.35));
+  color: #171717;
+  border-color: rgba(255, 232, 155, 0.8);
+  background: linear-gradient(120deg, rgba(247, 197, 0, 0.95), rgba(246, 139, 31, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36), 0 8px 16px rgba(7, 20, 30, 0.28);
+}
+
+.link-chip-cta:hover {
+  border-color: rgba(255, 243, 199, 0.95);
+  background: linear-gradient(120deg, rgba(247, 209, 62, 0.98), rgba(246, 139, 31, 0.94));
 }
 
 .hero-grid {
@@ -1360,6 +1394,25 @@ h1 {
   box-shadow: var(--shadow-soft);
 }
 
+.beach-card-button {
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: transform 170ms ease, box-shadow 170ms ease;
+}
+
+.beach-card-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(7, 27, 42, 0.16);
+}
+
+.beach-card-button:focus-visible {
+  outline: 2px solid rgba(15, 42, 58, 0.5);
+  outline-offset: 2px;
+}
+
 .beach-main-card img {
   width: 100%;
   height: 100%;
@@ -1418,6 +1471,85 @@ h1 {
 
 .beach-item p {
   margin: 0.45rem 0.25rem 0.15rem;
+}
+
+.beach-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: grid;
+  place-items: center;
+}
+
+.beach-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(4, 15, 22, 0.82);
+}
+
+.beach-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(860px, 94vw);
+  display: grid;
+  grid-template-columns: minmax(220px, 0.95fr) minmax(250px, 1.05fr);
+  gap: 0.95rem;
+  padding: 0.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(22, 22, 22, 0.14);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(237, 248, 251, 0.96));
+  box-shadow: 0 26px 52px rgba(5, 20, 30, 0.35);
+}
+
+.beach-modal-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  max-height: 72vh;
+  object-fit: cover;
+  border-radius: 0.75rem;
+}
+
+.beach-modal-body {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+}
+
+.beach-modal-body h3 {
+  margin: 0.15rem 0 0.2rem;
+}
+
+.beach-modal-body h4 {
+  margin: 0.4rem 0 0;
+  font-size: 1rem;
+}
+
+.beach-modal-body p {
+  margin: 0;
+}
+
+.beach-modal-body ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.beach-modal-close {
+  position: absolute;
+  top: 0.38rem;
+  right: 0.38rem;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 999px;
+  font-size: 1.45rem;
+  line-height: 1;
+  color: var(--white);
+  background: rgba(7, 20, 30, 0.76);
+  cursor: pointer;
 }
 
 .sticky-whatsapp {
@@ -1535,6 +1667,17 @@ h1 {
   .beach-main-card {
     grid-template-columns: 1fr;
   }
+
+  .beach-modal-card {
+    grid-template-columns: 1fr;
+    max-height: 88vh;
+    overflow: auto;
+  }
+
+  .beach-modal-card img {
+    min-height: 190px;
+    max-height: 35vh;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1549,12 +1692,14 @@ h1 {
 
   .link-chip {
     font-size: 0.82rem;
-    padding: 0.45rem 0.65rem;
+    padding: 0.44rem 0.6rem;
+    min-height: 2rem;
   }
 
   .topbar-actions {
     width: 100%;
     justify-content: center;
+    border-radius: 0.85rem;
   }
 
   .topbar-actions .link-chip {

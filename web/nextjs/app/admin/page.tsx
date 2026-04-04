@@ -30,6 +30,14 @@ const toImageLines = (items: SiteContent["media"]["galleryImages"]): string =>
 const toPricingLines = (items: SiteContent["pricing"]["packages"]): string =>
   items.map((item) => `${item.classes} | ${item.discount}`).join("\n");
 
+const toBeachLines = (items: SiteContent["beaches"]): string =>
+  items
+    .map(
+      (item) =>
+        `${item.name} | ${item.main ? "main" : "sec"} | ${item.image} | ${item.alt} | ${item.level} | ${item.bestWindow} | ${item.googleMapsUrl} | ${item.description} | ${item.tips.join(" ; ")}`
+    )
+    .join("\n");
+
 const parseLines = (value: string): string[] =>
   value
     .split("\n")
@@ -129,6 +137,47 @@ const parsePricingLines = (value: string): SiteContent["pricing"]["packages"] =>
   return parsed.length > 0 ? parsed : defaultSiteContent.pricing.packages;
 };
 
+const parseBeachLines = (value: string): SiteContent["beaches"] => {
+  const parsed = value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [namePart, mainPart, imagePart, altPart, levelPart, bestWindowPart, mapsPart, descriptionPart, tipsPart] =
+        line.split("|");
+
+      const name = (namePart || "").trim();
+      const mainRaw = (mainPart || "").trim().toLowerCase();
+      const image = (imagePart || "").trim();
+      const alt = (altPart || "").trim();
+      const level = (levelPart || "").trim();
+      const bestWindow = (bestWindowPart || "").trim();
+      const googleMapsUrl = (mapsPart || "").trim();
+      const description = (descriptionPart || "").trim();
+      const tips = (tipsPart || "")
+        .split(";")
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      if (!name || !image || !description) return null;
+
+      return {
+        name,
+        main: ["main", "principal", "true", "1", "si"].includes(mainRaw),
+        image,
+        alt: alt || `Playa ${name} para clases de surf`,
+        level: level || "Intermedio",
+        bestWindow: bestWindow || "Ventana por confirmar",
+        googleMapsUrl,
+        description,
+        tips: tips.length > 0 ? tips : ["Tip pendiente de configuracion."],
+      };
+    })
+    .filter((item): item is SiteContent["beaches"][number] => item !== null);
+
+  return parsed.length > 0 ? parsed : defaultSiteContent.beaches;
+};
+
 function MediaPreview({ file }: { file: StoredMediaFile }) {
   const [orientation, setOrientation] = useState<MediaOrientation>("landscape");
 
@@ -200,6 +249,7 @@ export default function AdminPage() {
   );
   const [imageLines, setImageLines] = useState<string>(toImageLines(initial.media.galleryImages));
   const [pricingLines, setPricingLines] = useState<string>(toPricingLines(initial.pricing.packages));
+  const [beachLines, setBeachLines] = useState<string>(toBeachLines(initial.beaches));
   const [notice, setNotice] = useState<NoticeState>("idle");
   const [noticeMessage, setNoticeMessage] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -216,6 +266,7 @@ export default function AdminPage() {
     setYoutubeGalleryLines(toLines(source.media.youtubeGalleryLinks));
     setImageLines(toImageLines(source.media.galleryImages));
     setPricingLines(toPricingLines(source.pricing.packages));
+    setBeachLines(toBeachLines(source.beaches));
   };
 
   const setSavedNotice = (message: string) => {
@@ -355,6 +406,7 @@ export default function AdminPage() {
     const comparisonRows = parseComparisonLines(comparisonLines);
     const faqItems = parseFaqLines(faqLines);
     const pricingPackages = parsePricingLines(pricingLines);
+    const beaches = parseBeachLines(beachLines);
     const galleryVideos = parseLines(instagramVideoLines).length + parseLines(youtubeGalleryLines).length;
     const galleryImages = parseImageLines(imageLines).length;
 
@@ -400,6 +452,14 @@ export default function AdminPage() {
         ok: pricingPackages.some((plan) => plan.classes >= 4) && pricingPackages.length >= 2,
       },
       {
+        label: "Playas con detalle para modal",
+        ok: beaches.length >= 3 && beaches.some((beach) => beach.main),
+      },
+      {
+        label: "Playas con link de Google Maps",
+        ok: beaches.every((beach) => beach.googleMapsUrl.trim().length > 0),
+      },
+      {
         label: "Galeria con al menos 4 medios",
         ok: galleryVideos + galleryImages >= 4,
       },
@@ -418,6 +478,7 @@ export default function AdminPage() {
     heroPointsLines,
     imageLines,
     instagramVideoLines,
+    beachLines,
     pricingLines,
     testimonialLines,
     youtubeGalleryLines,
@@ -452,6 +513,7 @@ export default function AdminPage() {
       testimonials: parseTestimonialLines(testimonialLines),
       comparisonRows: parseComparisonLines(comparisonLines),
       faqItems: parseFaqLines(faqLines),
+      beaches: parseBeachLines(beachLines),
       pricing: {
         groupRate: Number.isFinite(content.pricing.groupRate)
           ? Math.max(1, Math.round(content.pricing.groupRate))
@@ -851,6 +913,21 @@ export default function AdminPage() {
           <label>
             Paquetes (formato: clases | descuento)
             <textarea rows={6} value={pricingLines} onChange={(event) => setPricingLines(event.target.value)} />
+          </label>
+        </div>
+      </section>
+
+      <section className="card-section" style={{ marginTop: "1.5rem" }}>
+        <div className="section-head">
+          <h2>Playas (modal de detalle)</h2>
+        </div>
+        <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
+          Formato por linea: nombre | main/sec | imagen | alt | nivel | mejor ventana | Google Maps URL | descripcion | tip1 ; tip2 ; tip3
+        </p>
+        <div className="booking-form-grid">
+          <label>
+            Configuracion de playas
+            <textarea rows={10} value={beachLines} onChange={(event) => setBeachLines(event.target.value)} />
           </label>
         </div>
       </section>

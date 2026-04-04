@@ -11,6 +11,8 @@ type MediaOrientation = "landscape" | "portrait" | "square";
 const scheduleSlots = ["6:00", "8:00", "10:00", "4:00"];
 const weekdayOptions = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
 
+type BeachSpot = SiteContent["beaches"][number];
+
 type GalleryItem =
   | {
       type: "image";
@@ -64,42 +66,6 @@ const toYouTubeEmbedUrl = (url: string, options?: { loop?: boolean; autoplay?: b
   const autoplayValue = autoplay ? 1 : 0;
   return `https://www.youtube-nocookie.com/embed/${id}?autoplay=${autoplayValue}&mute=1&controls=${controls}${loopQuery}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`;
 };
-
-const beaches = [
-  {
-    name: "Barranquito",
-    image: "/media/session-a.svg",
-    alt: "Olas en Barranquito para clase de surf",
-    main: true,
-    description:
-      "Nuestro punto base en Lima por su entorno mas ordenado para aprendizaje, sesiones progresivas y experiencia premium para alumnos locales y corporativos.",
-  },
-  {
-    name: "La Pampilla",
-    image: "/media/session-b.svg",
-    alt: "Vista de La Pampilla en la Costa Verde",
-  },
-  {
-    name: "Redondo",
-    image: "/media/session-c.svg",
-    alt: "Playa Redondo en Lima para sesiones de surf",
-  },
-  {
-    name: "Punta Roquitas",
-    image: "/media/session-a.svg",
-    alt: "Zona de Punta Roquitas para practica de surf",
-  },
-  {
-    name: "Triangulo",
-    image: "/media/session-b.svg",
-    alt: "Spot Triangulo con olas en Costa Verde",
-  },
-  {
-    name: "San Bartolo",
-    image: "/media/session-c.svg",
-    alt: "Mar en San Bartolo para clases avanzadas",
-  },
-];
 
 const toPen = (value: number) => `S/.${Math.round(value)}`;
 
@@ -167,6 +133,7 @@ function GalleryImageCard({ src, alt, onOpen, ariaLabel }: { src: string; alt: s
 export default function SurfWellnessLanding() {
   const [siteContent, setSiteContent] = useState<SiteContent>(defaultSiteContent);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
+  const [activeBeachName, setActiveBeachName] = useState<string | null>(null);
   const [selectedPackageClasses, setSelectedPackageClasses] = useState<number>(
     defaultSiteContent.pricing.packages.find((plan) => plan.classes === 8)?.classes ||
       defaultSiteContent.pricing.packages[0].classes
@@ -330,10 +297,17 @@ export default function SurfWellnessLanding() {
     return [...instagramVideoItems, ...youtubeItems, ...imageItems];
   }, [instagramVideoItems, siteContent.media.galleryImages, youtubeItems]);
 
+  const beaches = useMemo(() => siteContent.beaches, [siteContent.beaches]);
+
   const activeImage = useMemo(() => {
     if (activeImageIndex === null) return null;
     return siteContent.media.galleryImages[activeImageIndex] || null;
   }, [activeImageIndex, siteContent.media.galleryImages]);
+
+  const activeBeach = useMemo(
+    () => beaches.find((beach) => beach.name === activeBeachName) || null,
+    [activeBeachName, beaches]
+  );
 
   const openImage = (index: number) => {
     setActiveImageIndex(index);
@@ -341,6 +315,13 @@ export default function SurfWellnessLanding() {
   };
 
   const closeImage = () => setActiveImageIndex(null);
+
+  const openBeachModal = (beach: BeachSpot) => {
+    setActiveBeachName(beach.name);
+    trackEvent("beach_modal_open", { beach: beach.name, locale: "es" });
+  };
+
+  const closeBeachModal = () => setActiveBeachName(null);
 
   const showPrevImage = () => {
     if (activeImageIndex === null) return;
@@ -378,15 +359,25 @@ export default function SurfWellnessLanding() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (activeBeachName !== null) {
+          closeBeachModal();
+          return;
+        }
+        if (activeImageIndex !== null) {
+          closeImage();
+          return;
+        }
+      }
+
       if (activeImageIndex === null) return;
-      if (event.key === "Escape") closeImage();
       if (event.key === "ArrowLeft") showPrevImage();
       if (event.key === "ArrowRight") showNextImage();
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [activeImageIndex]);
+  }, [activeBeachName, activeImageIndex]);
 
   useEffect(() => {
     let attempts = 0;
@@ -929,24 +920,36 @@ export default function SurfWellnessLanding() {
           {beaches
             .filter((beach) => beach.main)
             .map((beach) => (
-              <article className="beach-main-card" key={beach.name}>
+              <button
+                type="button"
+                className="beach-main-card beach-card-button"
+                key={beach.name}
+                onClick={() => openBeachModal(beach)}
+                aria-label={`Ver detalles de ${beach.name}`}
+              >
                 <img src={beach.image} alt={beach.alt} loading="lazy" />
                 <div className="beach-main-copy">
                   <p className="beach-tag">Playa principal</p>
                   <h3>{beach.name}</h3>
                   <p>{beach.description}</p>
                 </div>
-              </article>
+              </button>
             ))}
 
           <div className="beach-list">
             {beaches
               .filter((beach) => !beach.main)
               .map((beach) => (
-                <article className="beach-item" key={beach.name}>
+                <button
+                  type="button"
+                  className="beach-item beach-card-button"
+                  key={beach.name}
+                  onClick={() => openBeachModal(beach)}
+                  aria-label={`Ver detalles de ${beach.name}`}
+                >
                   <img src={beach.image} alt={beach.alt} loading="lazy" />
                   <p>{beach.name}</p>
-                </article>
+                </button>
               ))}
           </div>
         </section>
@@ -1010,6 +1013,46 @@ export default function SurfWellnessLanding() {
       >
         Reserva tu clase
       </a>
+
+      {activeBeach && (
+        <div className="beach-modal" role="dialog" aria-modal="true" aria-label={`Detalles de ${activeBeach.name}`}>
+          <button type="button" className="beach-modal-backdrop" onClick={closeBeachModal} aria-label="Cerrar" />
+          <article className="beach-modal-card">
+            <button type="button" className="beach-modal-close" onClick={closeBeachModal} aria-label="Cerrar detalles">
+              ×
+            </button>
+            <img src={activeBeach.image} alt={activeBeach.alt} loading="lazy" />
+            <div className="beach-modal-body">
+              <p className="beach-tag">Detalles de spot</p>
+              <h3>{activeBeach.name}</h3>
+              <p>{activeBeach.description}</p>
+              <p>
+                <strong>Nivel recomendado:</strong> {activeBeach.level}
+              </p>
+              <p>
+                <strong>Mejor ventana:</strong> {activeBeach.bestWindow}
+              </p>
+
+              <h4>Tips de sesion</h4>
+              <ul>
+                {activeBeach.tips.map((tip) => (
+                  <li key={tip}>{tip}</li>
+                ))}
+              </ul>
+
+              <a
+                className="btn btn-primary"
+                href={activeBeach.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackEvent("beach_maps_open", { beach: activeBeach.name, locale: "es" })}
+              >
+                Ver ubicacion en Google Maps
+              </a>
+            </div>
+          </article>
+        </div>
+      )}
 
       {activeImage && (
         <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label="Imagen ampliada">

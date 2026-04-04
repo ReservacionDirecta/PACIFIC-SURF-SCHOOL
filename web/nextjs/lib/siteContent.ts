@@ -51,6 +51,18 @@ export type GalleryImage = {
   alt: string;
 };
 
+export type BeachContent = {
+  name: string;
+  image: string;
+  alt: string;
+  main: boolean;
+  description: string;
+  level: string;
+  bestWindow: string;
+  googleMapsUrl: string;
+  tips: string[];
+};
+
 export type EditableMediaContent = {
   heroYoutubeUrl: string;
   storyYoutubeUrl: string;
@@ -69,6 +81,7 @@ export type SiteContent = {
   testimonials: Testimonial[];
   comparisonRows: ComparisonRow[];
   faqItems: FaqItem[];
+  beaches: BeachContent[];
   media: EditableMediaContent;
 };
 
@@ -79,6 +92,100 @@ const defaultGalleryImages: GalleryImage[] = [
   { src: "/media/session-a.svg", alt: "Alumno sonriendo despues de una buena ola" },
   { src: "/media/session-b.svg", alt: "Sesion de surf al atardecer en Barranquito" },
   { src: "/media/session-c.svg", alt: "Momento de remada y enfoque tecnico en clase" },
+];
+
+const defaultBeaches: BeachContent[] = [
+  {
+    name: "Barranquito",
+    image: "/media/session-a.svg",
+    alt: "Olas en Barranquito para clase de surf",
+    main: true,
+    description:
+      "Nuestro punto base en Lima por su entorno mas ordenado para aprendizaje, sesiones progresivas y experiencia premium para alumnos locales y corporativos.",
+    level: "Inicial a intermedio",
+    bestWindow: "Mananas con mar limpio y menor trafico",
+    googleMapsUrl: "https://maps.google.com/?q=Playa+Barranquito+Lima",
+    tips: [
+      "Llega 20 minutos antes para revisar condiciones y estirar.",
+      "Usa bloqueador resistente al agua y lycra manga larga.",
+      "Ideal para construir tecnica base con sesiones progresivas.",
+    ],
+  },
+  {
+    name: "La Pampilla",
+    image: "/media/session-b.svg",
+    alt: "Vista de La Pampilla en la Costa Verde",
+    main: false,
+    description: "Spot de referencia en Miraflores con acceso rapido y olas consistentes segun temporada.",
+    level: "Intermedio",
+    bestWindow: "Temprano entre semana",
+    googleMapsUrl: "https://maps.google.com/?q=Playa+La+Pampilla+Miraflores",
+    tips: [
+      "Prioriza control de remada y lectura de serie antes de entrar.",
+      "Evita horas pico para mejorar seguridad y fluidez.",
+      "Revisa corrientes laterales antes de cada bloque.",
+    ],
+  },
+  {
+    name: "Redondo",
+    image: "/media/session-c.svg",
+    alt: "Playa Redondo en Lima para sesiones de surf",
+    main: false,
+    description: "Zona con energia variable donde entrenamos adaptacion de postura y timing de take-off.",
+    level: "Intermedio",
+    bestWindow: "Mananas y tardes con viento suave",
+    googleMapsUrl: "https://maps.google.com/?q=Playa+Redondo+Miraflores",
+    tips: [
+      "Manten distancia de seguridad al compartir pico.",
+      "Practica salida controlada para conservar energia.",
+      "Buena opcion para reforzar giros basicos.",
+    ],
+  },
+  {
+    name: "Punta Roquitas",
+    image: "/media/session-a.svg",
+    alt: "Zona de Punta Roquitas para practica de surf",
+    main: false,
+    description: "Punto tecnico para mejorar lineas y control de velocidad cuando el mar esta ordenado.",
+    level: "Intermedio a avanzado",
+    bestWindow: "Swell moderado y viento limpio",
+    googleMapsUrl: "https://maps.google.com/?q=Punta+Roquitas+Lima",
+    tips: [
+      "Calienta hombros y zona lumbar antes de entrar.",
+      "Define objetivo tecnico de la sesion en cada serie.",
+      "Usa leash en buen estado por seguridad.",
+    ],
+  },
+  {
+    name: "Triangulo",
+    image: "/media/session-b.svg",
+    alt: "Spot Triangulo con olas en Costa Verde",
+    main: false,
+    description: "Escenario util para trabajar lectura de ola y transiciones en diferentes secciones.",
+    level: "Intermedio",
+    bestWindow: "Mareas medias con mar ordenado",
+    googleMapsUrl: "https://maps.google.com/?q=Playa+Triangulo+Lima",
+    tips: [
+      "Observa 10 minutos las series antes de ingresar.",
+      "Entra con plan de posicionamiento y punto de salida.",
+      "Prioriza tecnica sobre volumen de olas tomadas.",
+    ],
+  },
+  {
+    name: "San Bartolo",
+    image: "/media/session-c.svg",
+    alt: "Mar en San Bartolo para clases avanzadas",
+    main: false,
+    description: "Destino ideal para sesiones avanzadas y progresion de maniobras en olas con mayor recorrido.",
+    level: "Intermedio alto a avanzado",
+    bestWindow: "Temporadas de mejor periodo de swell",
+    googleMapsUrl: "https://maps.google.com/?q=Playa+San+Bartolo+Lima",
+    tips: [
+      "Planifica traslado con anticipacion para aprovechar ventana de mar.",
+      "Lleva hidratacion y snack para sesiones largas.",
+      "Recomendado para alumnos con base tecnica consolidada.",
+    ],
+  },
 ];
 
 const splitCsv = (value: string): string[] =>
@@ -182,6 +289,7 @@ export const defaultSiteContent: SiteContent = {
       answer: "Objetivo operativo: menos de 10 minutos en horario de atencion.",
     },
   ],
+  beaches: defaultBeaches,
   media: {
     heroYoutubeUrl: toYoutubeWatchUrl(process.env.NEXT_PUBLIC_HERO_VIDEO_ID || "7gWl1-k6QpE"),
     storyYoutubeUrl: toYoutubeWatchUrl(
@@ -229,6 +337,44 @@ const normalizePricingPackages = (input: unknown): PricingPackage[] => {
   return normalized.length > 0 ? normalized : defaultSiteContent.pricing.packages;
 };
 
+const normalizeBeaches = (input: unknown): BeachContent[] => {
+  if (!Array.isArray(input)) return defaultBeaches;
+
+  const normalized = input
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const name = String((item as { name?: unknown }).name || "").trim();
+      const image = String((item as { image?: unknown }).image || "").trim();
+      const alt = String((item as { alt?: unknown }).alt || "").trim();
+      const description = String((item as { description?: unknown }).description || "").trim();
+      const level = String((item as { level?: unknown }).level || "").trim();
+      const bestWindow = String((item as { bestWindow?: unknown }).bestWindow || "").trim();
+      const googleMapsUrl = String((item as { googleMapsUrl?: unknown }).googleMapsUrl || "").trim();
+      const tipsInput = (item as { tips?: unknown }).tips;
+      const tips = Array.isArray(tipsInput)
+        ? tipsInput.map((tip) => String(tip).trim()).filter(Boolean)
+        : [];
+      const main = Boolean((item as { main?: unknown }).main);
+
+      if (!name || !image || !description) return null;
+
+      return {
+        name,
+        image,
+        alt: alt || `Playa ${name} en Lima para clases de surf`,
+        main,
+        description,
+        level: level || "Intermedio",
+        bestWindow: bestWindow || "Ventana por confirmar",
+        googleMapsUrl,
+        tips: tips.length > 0 ? tips : ["Tip pendiente de configuracion en CMS."],
+      };
+    })
+    .filter((item): item is BeachContent => item !== null);
+
+  return normalized.length > 0 ? normalized : defaultBeaches;
+};
+
 export const mergeWithDefaultSiteContent = (input: unknown): SiteContent => {
   if (!input || typeof input !== "object") return defaultSiteContent;
 
@@ -240,6 +386,7 @@ export const mergeWithDefaultSiteContent = (input: unknown): SiteContent => {
     testimonials?: unknown;
     comparisonRows?: unknown;
     faqItems?: unknown;
+    beaches?: unknown;
     media?: Partial<EditableMediaContent>;
   };
 
@@ -321,6 +468,7 @@ export const mergeWithDefaultSiteContent = (input: unknown): SiteContent => {
     testimonials: testimonials.length > 0 ? testimonials : defaultSiteContent.testimonials,
     comparisonRows: comparisonRows.length > 0 ? comparisonRows : defaultSiteContent.comparisonRows,
     faqItems: faqItems.length > 0 ? faqItems : defaultSiteContent.faqItems,
+    beaches: normalizeBeaches(raw.beaches),
     media: {
       heroYoutubeUrl: String(raw.media?.heroYoutubeUrl || defaultSiteContent.media.heroYoutubeUrl),
       storyYoutubeUrl: String(raw.media?.storyYoutubeUrl || defaultSiteContent.media.storyYoutubeUrl),
