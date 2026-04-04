@@ -6,6 +6,7 @@ import { trackEvent } from "./lib/analytics";
 import { defaultSiteContent, type SiteContent } from "./lib/siteContent";
 
 const HERO_POSTER = process.env.NEXT_PUBLIC_HERO_POSTER || "/media/hero-poster.svg";
+type MediaOrientation = "landscape" | "portrait" | "square";
 
 const GROUP_RATE = 110;
 const PRIVATE_RATE = 150;
@@ -57,6 +58,10 @@ const extractYouTubeId = (input: string): string | null => {
   return null;
 };
 
+const isDirectVideoUrl = (value: string): boolean => /\.(mp4|webm|mov)(\?|$)/i.test(value.trim());
+
+const isDirectImageUrl = (value: string): boolean => /\.(jpg|jpeg|png|webp|gif|svg)(\?|$)/i.test(value.trim());
+
 const toYouTubeEmbedUrl = (url: string, options?: { loop?: boolean; autoplay?: boolean }): string | null => {
   const id = extractYouTubeId(url);
   if (!id) return null;
@@ -107,6 +112,67 @@ const beaches = [
 
 const toPen = (value: number) => `S/.${Math.round(value)}`;
 
+function GalleryVideoCard({ src }: { src: string }) {
+  const [orientation, setOrientation] = useState<MediaOrientation>("portrait");
+
+  const updateOrientation = (width: number, height: number) => {
+    if (!width || !height) return;
+    if (Math.abs(width - height) < 8) {
+      setOrientation("square");
+      return;
+    }
+
+    setOrientation(width > height ? "landscape" : "portrait");
+  };
+
+  return (
+    <article className="gallery-item gallery-item-video">
+      <div className={`gallery-media-wrap gallery-media-wrap-${orientation}`}>
+        <video
+          className="gallery-native-video"
+          src={src}
+          muted
+          autoPlay
+          loop
+          playsInline
+          preload="metadata"
+          onLoadedMetadata={(event) =>
+            updateOrientation(event.currentTarget.videoWidth, event.currentTarget.videoHeight)
+          }
+        />
+      </div>
+    </article>
+  );
+}
+
+function GalleryImageCard({ src, alt, onOpen, ariaLabel }: { src: string; alt: string; onOpen: () => void; ariaLabel: string }) {
+  const [orientation, setOrientation] = useState<MediaOrientation>("landscape");
+
+  const updateOrientation = (width: number, height: number) => {
+    if (!width || !height) return;
+    if (Math.abs(width - height) < 8) {
+      setOrientation("square");
+      return;
+    }
+
+    setOrientation(width > height ? "landscape" : "portrait");
+  };
+
+  return (
+    <button type="button" className="gallery-item gallery-item-button" onClick={onOpen} aria-label={ariaLabel}>
+      <div className={`gallery-media-wrap gallery-media-wrap-${orientation}`}>
+        <img
+          className="gallery-media-image"
+          src={src}
+          alt={alt}
+          loading="lazy"
+          onLoad={(event) => updateOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight)}
+        />
+      </div>
+    </button>
+  );
+}
+
 export default function SurfWellnessLanding() {
   const [siteContent, setSiteContent] = useState<SiteContent>(defaultSiteContent);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
@@ -122,14 +188,23 @@ export default function SurfWellnessLanding() {
   const heroFrameRef = useRef<HTMLIFrameElement | null>(null);
   const storyFrameRef = useRef<HTMLIFrameElement | null>(null);
 
+  const heroSource = siteContent.media.heroYoutubeUrl.trim();
+  const storySource = siteContent.media.storyYoutubeUrl.trim();
+  const heroIsHostedVideo = isDirectVideoUrl(heroSource);
+  const storyIsHostedVideo = isDirectVideoUrl(storySource);
+  const storyIsHostedImage = isDirectImageUrl(storySource);
+
   const heroEmbed = useMemo(
-    () => toYouTubeEmbedUrl(siteContent.media.heroYoutubeUrl, { loop: true, autoplay: true }) || "",
-    [siteContent.media.heroYoutubeUrl]
+    () => (heroIsHostedVideo ? "" : toYouTubeEmbedUrl(heroSource, { loop: true, autoplay: true }) || ""),
+    [heroIsHostedVideo, heroSource]
   );
 
   const storyEmbed = useMemo(
-    () => toYouTubeEmbedUrl(siteContent.media.storyYoutubeUrl, { loop: true, autoplay: true }) || "",
-    [siteContent.media.storyYoutubeUrl]
+    () =>
+      storyIsHostedVideo || storyIsHostedImage
+        ? ""
+        : toYouTubeEmbedUrl(storySource, { loop: true, autoplay: true }) || "",
+    [storyIsHostedImage, storyIsHostedVideo, storySource]
   );
 
   const todayIso = useMemo(() => {
@@ -326,7 +401,9 @@ export default function SurfWellnessLanding() {
       <header className="hero" id="inicio">
         <div className="hero-media" aria-hidden="true">
           <div className="hero-poster" style={{ backgroundImage: `url(${HERO_POSTER})` }} />
-          {heroEmbed ? (
+          {heroIsHostedVideo ? (
+            <video className="hero-video hero-native-video" src={heroSource} autoPlay muted loop playsInline preload="metadata" />
+          ) : heroEmbed ? (
             <iframe
               ref={heroFrameRef}
               className="hero-video"
@@ -363,8 +440,9 @@ export default function SurfWellnessLanding() {
               <p className="lead">{siteContent.texts.heroLead}</p>
 
               <ul className="hero-points">
-                <li>Horarios que si calzan con tu semana: 6:00, 8:00, 10:00 y 4:00</li>
-                <li>Paquetes con descuento y coordinacion rapida por WhatsApp</li>
+                {siteContent.heroPoints.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
               </ul>
 
               <div className="cta-row">
@@ -375,10 +453,10 @@ export default function SurfWellnessLanding() {
                   rel="noopener noreferrer"
                   onClick={() => trackCta("hero", "plan")}
                 >
-                  Quiero mi plan por WhatsApp
+                  {siteContent.texts.heroPrimaryCta}
                 </a>
                 <a className="btn btn-secondary" href="#paquetes">
-                  Ver tarifas y paquetes
+                  {siteContent.texts.heroSecondaryCta}
                 </a>
               </div>
             </article>
@@ -429,7 +507,11 @@ export default function SurfWellnessLanding() {
           </div>
           <div className="story-grid">
             <article className="story-video-wrap">
-              {storyEmbed ? (
+              {storyIsHostedVideo ? (
+                <video className="story-video story-native-video" src={storySource} autoPlay muted loop playsInline preload="metadata" />
+              ) : storyIsHostedImage ? (
+                <img className="story-native-image" src={storySource} alt="Media destacada de Pacific Surf School" loading="lazy" />
+              ) : storyEmbed ? (
                 <iframe
                   ref={storyFrameRef}
                   className="story-video"
@@ -478,27 +560,13 @@ export default function SurfWellnessLanding() {
           <div className="gallery-masonry">
             {galleryItems.map((item, index) => {
               if (item.type === "instagramVideo") {
-                return (
-                  <article key={`${item.src}-${index}`} className="gallery-item gallery-item-video">
-                    <div className="instagram-frame-wrap instagram-video-wrap">
-                      <video
-                        className="instagram-video"
-                        src={item.src}
-                        muted
-                        autoPlay
-                        loop
-                        playsInline
-                        preload="metadata"
-                      />
-                    </div>
-                  </article>
-                );
+                return <GalleryVideoCard key={`${item.src}-${index}`} src={item.src} />;
               }
 
               if (item.type === "youtube") {
                 return (
                   <article key={`${item.permalink}-${index}`} className="gallery-item gallery-item-video">
-                    <div className="instagram-frame-wrap">
+                    <div className="gallery-media-wrap gallery-media-wrap-landscape">
                       <iframe
                         className="instagram-frame"
                         src={item.embedUrl}
@@ -520,15 +588,13 @@ export default function SurfWellnessLanding() {
               }
 
               return (
-                <button
+                <GalleryImageCard
                   key={`${item.src}-${index}`}
-                  type="button"
-                  className="gallery-item"
-                  onClick={() => openImage(item.imageIndex)}
-                  aria-label={`Abrir imagen ${item.imageIndex + 1} de la galeria`}
-                >
-                  <img src={item.src} alt={item.alt} loading="lazy" />
-                </button>
+                  src={item.src}
+                  alt={item.alt}
+                  onOpen={() => openImage(item.imageIndex)}
+                  ariaLabel={`Abrir imagen ${item.imageIndex + 1} de la galeria`}
+                />
               );
             })}
           </div>
@@ -540,24 +606,12 @@ export default function SurfWellnessLanding() {
             <h2>Elegido por profesionales que valoran progreso y tiempo</h2>
           </div>
           <div className="testimonial-grid">
-            <article className="card">
-              <p>
-                "La coordinacion por WhatsApp me ahorro tiempo. En pocas sesiones ya senti progreso real."
-              </p>
-              <strong>Profesional de tecnologia, 34</strong>
-            </article>
-            <article className="card">
-              <p>
-                "Buscaba desconectar sin caos en el agua. Barranquito fue justo lo que necesitaba."
-              </p>
-              <strong>Consultora, 29</strong>
-            </article>
-            <article className="card">
-              <p>
-                "El plan de 8 clases me dio continuidad. No perdi ritmo entre semana y semana."
-              </p>
-              <strong>Gerente comercial, 41</strong>
-            </article>
+            {siteContent.testimonials.map((testimonial) => (
+              <article className="card" key={`${testimonial.author}-${testimonial.quote}`}>
+                <p>{`"${testimonial.quote}"`}</p>
+                <strong>{testimonial.author}</strong>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -572,21 +626,13 @@ export default function SurfWellnessLanding() {
               <div role="columnheader">Barranquito</div>
               <div role="columnheader">Zonas mas saturadas</div>
             </div>
-            <div className="row" role="row">
-              <div role="cell">Flujo de sesion</div>
-              <div role="cell">Mas ordenado para practicar tecnica</div>
-              <div role="cell">Mayor congestion en horas pico</div>
-            </div>
-            <div className="row" role="row">
-              <div role="cell">Experiencia para ejecutivos</div>
-              <div role="cell">Ambiente premium y enfocado</div>
-              <div role="cell">Mayor ruido y friccion</div>
-            </div>
-            <div className="row" role="row">
-              <div role="cell">Continuidad</div>
-              <div role="cell">Mejor para rutas de 4 y 8 clases</div>
-              <div role="cell">Mas interrupciones en sesion</div>
-            </div>
+            {siteContent.comparisonRows.map((row) => (
+              <div className="row" role="row" key={`${row.factor}-${row.barranquito}`}>
+                <div role="cell">{row.factor}</div>
+                <div role="cell">{row.barranquito}</div>
+                <div role="cell">{row.crowded}</div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -838,20 +884,12 @@ export default function SurfWellnessLanding() {
             <h2>Resolvemos dudas rapido</h2>
           </div>
           <div className="faq-list">
-            <details>
-              <summary>Nunca hice surf. Puedo empezar?</summary>
-              <p>Si. El plan esta pensado para iniciar desde cero y progresar por etapas.</p>
-            </details>
-            <details>
-              <summary>Como pago y confirmo mi cupo?</summary>
-              <p>
-                Se coordina por WhatsApp y la confirmacion se realiza con pago por Yape o Plin.
-              </p>
-            </details>
-            <details>
-              <summary>Cuanto tardan en responder?</summary>
-              <p>Objetivo operativo: menos de 10 minutos en horario de atencion.</p>
-            </details>
+            {siteContent.faqItems.map((faq) => (
+              <details key={faq.question}>
+                <summary>{faq.question}</summary>
+                <p>{faq.answer}</p>
+              </details>
+            ))}
           </div>
         </section>
 
