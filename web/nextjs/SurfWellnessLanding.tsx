@@ -3,16 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRef } from "react";
 import { trackEvent } from "./lib/analytics";
+import { defaultSiteContent, type SiteContent } from "./lib/siteContent";
 
-const HERO_VIDEO_ID = (process.env.NEXT_PUBLIC_HERO_VIDEO_ID || "7gWl1-k6QpE").trim();
 const HERO_POSTER = process.env.NEXT_PUBLIC_HERO_POSTER || "/media/hero-poster.svg";
-const HERO_EMBED = HERO_VIDEO_ID
-  ? `https://www.youtube-nocookie.com/embed/${HERO_VIDEO_ID}?autoplay=1&mute=1&controls=0&loop=1&playlist=${HERO_VIDEO_ID}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`
-  : "";
-const STORY_VIDEO_ID = (process.env.NEXT_PUBLIC_STORY_VIDEO_ID || HERO_VIDEO_ID).trim();
-const STORY_EMBED = STORY_VIDEO_ID
-  ? `https://www.youtube-nocookie.com/embed/${STORY_VIDEO_ID}?autoplay=1&mute=1&controls=0&loop=1&playlist=${STORY_VIDEO_ID}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`
-  : "";
 
 const GROUP_RATE = 110;
 const PRIVATE_RATE = 150;
@@ -25,38 +18,6 @@ const packagePlans = [
   { classes: 16, discount: 0.2 },
 ];
 const weekdayOptions = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
-const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/pacific_surfschool/";
-const INSTAGRAM_POST_URLS = (process.env.NEXT_PUBLIC_INSTAGRAM_POST_URLS || "")
-  .split(",")
-  .map((url) => url.trim())
-  .filter(Boolean);
-
-const galleryImages = [
-  {
-    src: "/media/session-a.svg",
-    alt: "Alumno practicando take off en Barranquito",
-  },
-  {
-    src: "/media/session-b.svg",
-    alt: "Vista abierta del mar en Costa Verde durante clase",
-  },
-  {
-    src: "/media/session-c.svg",
-    alt: "Instructor corrigiendo postura antes de entrar al agua",
-  },
-  {
-    src: "/media/session-a.svg",
-    alt: "Alumno sonriendo despues de una buena ola",
-  },
-  {
-    src: "/media/session-b.svg",
-    alt: "Sesion de surf al atardecer en Barranquito",
-  },
-  {
-    src: "/media/session-c.svg",
-    alt: "Momento de remada y enfoque tecnico en clase",
-  },
-];
 
 type GalleryItem =
   | {
@@ -66,17 +27,46 @@ type GalleryItem =
       imageIndex: number;
     }
   | {
-      type: "instagram";
+      type: "instagramVideo";
+      alt: string;
+      src: string;
+    }
+  | {
+      type: "youtube";
       alt: string;
       permalink: string;
       embedUrl: string;
     };
 
-const toInstagramEmbedUrl = (url: string): string | null => {
-  const match = url.match(/instagram\.com\/(p|reel)\/([^/?#]+)/i);
-  if (!match) return null;
-  const [, kind, shortcode] = match;
-  return `https://www.instagram.com/${kind.toLowerCase()}/${shortcode}/embed`;
+const extractYouTubeId = (input: string): string | null => {
+  const value = input.trim();
+  if (!value) return null;
+
+  const directIdMatch = value.match(/^[A-Za-z0-9_-]{11}$/);
+  if (directIdMatch) return value;
+
+  const watchMatch = value.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if (watchMatch) return watchMatch[1];
+
+  const shortMatch = value.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+  if (shortMatch) return shortMatch[1];
+
+  const embedMatch = value.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{11})/);
+  if (embedMatch) return embedMatch[1];
+
+  return null;
+};
+
+const toYouTubeEmbedUrl = (url: string, options?: { loop?: boolean; autoplay?: boolean }): string | null => {
+  const id = extractYouTubeId(url);
+  if (!id) return null;
+
+  const loop = Boolean(options?.loop);
+  const autoplay = options?.autoplay ?? true;
+  const loopQuery = loop ? `&loop=1&playlist=${id}` : "";
+  const controls = autoplay ? 0 : 1;
+  const autoplayValue = autoplay ? 1 : 0;
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=${autoplayValue}&mute=1&controls=${controls}${loopQuery}&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`;
 };
 
 const beaches = [
@@ -118,6 +108,7 @@ const beaches = [
 const toPen = (value: number) => `S/.${Math.round(value)}`;
 
 export default function SurfWellnessLanding() {
+  const [siteContent, setSiteContent] = useState<SiteContent>(defaultSiteContent);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [selectedPackageClasses, setSelectedPackageClasses] = useState<number>(8);
   const [selectedClassType, setSelectedClassType] = useState<"grupal" | "personalizada">("grupal");
@@ -130,6 +121,16 @@ export default function SurfWellnessLanding() {
   const [customerWhatsapp, setCustomerWhatsapp] = useState<string>("");
   const heroFrameRef = useRef<HTMLIFrameElement | null>(null);
   const storyFrameRef = useRef<HTMLIFrameElement | null>(null);
+
+  const heroEmbed = useMemo(
+    () => toYouTubeEmbedUrl(siteContent.media.heroYoutubeUrl, { loop: true, autoplay: true }) || "",
+    [siteContent.media.heroYoutubeUrl]
+  );
+
+  const storyEmbed = useMemo(
+    () => toYouTubeEmbedUrl(siteContent.media.storyYoutubeUrl, { loop: true, autoplay: true }) || "",
+    [siteContent.media.storyYoutubeUrl]
+  );
 
   const todayIso = useMemo(() => {
     const now = new Date();
@@ -203,35 +204,51 @@ export default function SurfWellnessLanding() {
 
   const plannerHref = `https://wa.me/51915168620?text=${encodeURIComponent(plannerMessage)}`;
 
-  const instagramItems = useMemo<GalleryItem[]>(() => {
-    return INSTAGRAM_POST_URLS.map((permalink) => {
-      const embedUrl = toInstagramEmbedUrl(permalink);
-      if (!embedUrl) return null;
+  const instagramVideoItems = useMemo<GalleryItem[]>(() => {
+    return siteContent.media.instagramVideoLinks
+      .map((src) => {
+        const cleanSrc = src.trim();
+        if (!cleanSrc) return null;
+        return {
+          type: "instagramVideo",
+          alt: "Video de Instagram de Pacific Surf School",
+          src: cleanSrc,
+        } as GalleryItem;
+      })
+      .filter((item): item is GalleryItem => item !== null);
+  }, [siteContent.media.instagramVideoLinks]);
 
-      return {
-        type: "instagram",
-        alt: "Video de Instagram de Pacific Surf School",
-        permalink,
-        embedUrl,
-      } as GalleryItem;
-    }).filter((item): item is GalleryItem => item !== null);
-  }, []);
+  const youtubeItems = useMemo<GalleryItem[]>(() => {
+    return siteContent.media.youtubeGalleryLinks
+      .map((permalink) => {
+        const embedUrl = toYouTubeEmbedUrl(permalink, { loop: false, autoplay: false });
+        if (!embedUrl) return null;
+
+        return {
+          type: "youtube",
+          alt: "Video de YouTube de Pacific Surf School",
+          permalink,
+          embedUrl,
+        } as GalleryItem;
+      })
+      .filter((item): item is GalleryItem => item !== null);
+  }, [siteContent.media.youtubeGalleryLinks]);
 
   const galleryItems = useMemo<GalleryItem[]>(() => {
-    const imageItems: GalleryItem[] = galleryImages.map((image, imageIndex) => ({
+    const imageItems: GalleryItem[] = siteContent.media.galleryImages.map((image, imageIndex) => ({
       type: "image",
       src: image.src,
       alt: image.alt,
       imageIndex,
     }));
 
-    return [...instagramItems, ...imageItems];
-  }, [instagramItems]);
+    return [...instagramVideoItems, ...youtubeItems, ...imageItems];
+  }, [instagramVideoItems, siteContent.media.galleryImages, youtubeItems]);
 
   const activeImage = useMemo(() => {
     if (activeImageIndex === null) return null;
-    return galleryImages[activeImageIndex] || null;
-  }, [activeImageIndex]);
+    return siteContent.media.galleryImages[activeImageIndex] || null;
+  }, [activeImageIndex, siteContent.media.galleryImages]);
 
   const openImage = (index: number) => {
     setActiveImageIndex(index);
@@ -242,15 +259,37 @@ export default function SurfWellnessLanding() {
 
   const showPrevImage = () => {
     if (activeImageIndex === null) return;
-    const nextIndex = (activeImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    const nextIndex =
+      (activeImageIndex - 1 + siteContent.media.galleryImages.length) %
+      siteContent.media.galleryImages.length;
     setActiveImageIndex(nextIndex);
   };
 
   const showNextImage = () => {
     if (activeImageIndex === null) return;
-    const nextIndex = (activeImageIndex + 1) % galleryImages.length;
+    const nextIndex = (activeImageIndex + 1) % siteContent.media.galleryImages.length;
     setActiveImageIndex(nextIndex);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadContent = async () => {
+      try {
+        const response = await fetch("/api/site-content", { cache: "no-store" });
+        if (!response.ok) return;
+        const payload = (await response.json()) as { content?: SiteContent };
+        if (payload.content && isMounted) setSiteContent(payload.content);
+      } catch {
+        // Keep defaults if API is unavailable.
+      }
+    };
+
+    loadContent();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -279,7 +318,7 @@ export default function SurfWellnessLanding() {
     }, 500);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [heroEmbed, storyEmbed]);
 
   return (
     <>
@@ -287,11 +326,11 @@ export default function SurfWellnessLanding() {
       <header className="hero" id="inicio">
         <div className="hero-media" aria-hidden="true">
           <div className="hero-poster" style={{ backgroundImage: `url(${HERO_POSTER})` }} />
-          {HERO_EMBED ? (
+          {heroEmbed ? (
             <iframe
               ref={heroFrameRef}
               className="hero-video"
-              src={HERO_EMBED}
+              src={heroEmbed}
               title="Alumno tomando clase de surf en Barranquito"
               loading="eager"
               onLoad={() => syncYoutubePlayer(heroFrameRef.current)}
@@ -319,11 +358,9 @@ export default function SurfWellnessLanding() {
 
           <div className="hero-grid">
             <article className="hero-content">
-              <p className="eyebrow">Barranquito, Lima</p>
-              <h1>Surf en Lima, bien hecho y sin el caos de spots saturados</h1>
-              <p className="lead">
-                Somos Pacific Surf School. Clases claras, progreso real y buena vibra en Barranquito para gente que quiere aprender de verdad.
-              </p>
+              <p className="eyebrow">{siteContent.texts.heroEyebrow}</p>
+              <h1>{siteContent.texts.heroTitle}</h1>
+              <p className="lead">{siteContent.texts.heroLead}</p>
 
               <ul className="hero-points">
                 <li>Horarios que si calzan con tu semana: 6:00, 8:00, 10:00 y 4:00</li>
@@ -382,9 +419,7 @@ export default function SurfWellnessLanding() {
 
       <main>
         <section className="section brand-note" id="marca">
-          <p>
-            No vendemos una clase suelta. Disenamos una experiencia de progreso para que vuelvas al trabajo con energia, foco y la sensacion real de haber avanzado.
-          </p>
+          <p>{siteContent.texts.brandNote}</p>
         </section>
 
         <section className="section media-strip" id="experiencia">
@@ -394,11 +429,11 @@ export default function SurfWellnessLanding() {
           </div>
           <div className="story-grid">
             <article className="story-video-wrap">
-              {STORY_EMBED ? (
+              {storyEmbed ? (
                 <iframe
                   ref={storyFrameRef}
                   className="story-video"
-                  src={STORY_EMBED}
+                  src={storyEmbed}
                   title="Sesion real de surf en Pacific Surf School"
                   loading="eager"
                   onLoad={() => syncYoutubePlayer(storyFrameRef.current)}
@@ -430,28 +465,46 @@ export default function SurfWellnessLanding() {
 
         <section className="section gallery-section" id="galeria">
           <div className="section-head">
-            <p className="eyebrow">Galeria</p>
-            <h2>La energia real de cada sesion, en imagenes</h2>
+            <p className="eyebrow">{siteContent.texts.galleryEyebrow}</p>
+            <h2>{siteContent.texts.galleryTitle}</h2>
           </div>
           <p className="gallery-note">
-            Videos publicados desde Instagram. Mira mas contenido en{" "}
-            <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">
+            Videos publicados por Pacific Surf School. Mira mas contenido en{" "}
+            <a href={siteContent.media.instagramProfileUrl} target="_blank" rel="noopener noreferrer">
               @pacific_surfschool
             </a>
             .
           </p>
           <div className="gallery-masonry">
             {galleryItems.map((item, index) => {
-              if (item.type === "instagram") {
+              if (item.type === "instagramVideo") {
+                return (
+                  <article key={`${item.src}-${index}`} className="gallery-item gallery-item-video">
+                    <div className="instagram-frame-wrap instagram-video-wrap">
+                      <video
+                        className="instagram-video"
+                        src={item.src}
+                        muted
+                        autoPlay
+                        loop
+                        playsInline
+                        preload="metadata"
+                      />
+                    </div>
+                  </article>
+                );
+              }
+
+              if (item.type === "youtube") {
                 return (
                   <article key={`${item.permalink}-${index}`} className="gallery-item gallery-item-video">
                     <div className="instagram-frame-wrap">
                       <iframe
                         className="instagram-frame"
-                        src={`${item.embedUrl}?utm_source=ig_embed&utm_campaign=loading`}
+                        src={item.embedUrl}
                         title={item.alt}
                         loading="lazy"
-                        allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        allow="autoplay; encrypted-media; picture-in-picture; web-share"
                       />
                     </div>
                     <a
@@ -460,7 +513,7 @@ export default function SurfWellnessLanding() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Ver post en Instagram
+                      Ver video en YouTube
                     </a>
                   </article>
                 );
@@ -803,10 +856,8 @@ export default function SurfWellnessLanding() {
         </section>
 
         <section className="section final-cta" id="cta-final">
-          <h2>Reserva hoy y convierte el mar en tu mejor rutina de bienestar</h2>
-          <p>
-            Escribenos por WhatsApp, recibe recomendacion en minutos y asegura tu horario en Barranquito.
-          </p>
+          <h2>{siteContent.texts.finalCtaTitle}</h2>
+          <p>{siteContent.texts.finalCtaBody}</p>
           <a
             className="btn btn-primary"
             href="https://wa.me/51915168620?text=Hola%20Pacific%20Surf%20School%2C%20quiero%20reservar%20mi%20clase%20en%20Barranquito."
@@ -814,7 +865,7 @@ export default function SurfWellnessLanding() {
             rel="noopener noreferrer"
             onClick={() => trackCta("final_cta", "booking")}
           >
-            Reservar por WhatsApp ahora
+            {siteContent.texts.finalCtaButton}
           </a>
         </section>
 
