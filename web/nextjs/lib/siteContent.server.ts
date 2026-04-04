@@ -3,7 +3,13 @@ import path from "node:path";
 import { defaultSiteContent, mergeWithDefaultSiteContent, type SiteContent } from "./siteContent";
 
 const DATA_DIR = path.join(process.cwd(), "data");
-const CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
+const LEGACY_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
+const CONTENT_DIR = process.env.CONTENT_STORAGE_ROOT?.trim()
+  ? path.resolve(process.env.CONTENT_STORAGE_ROOT)
+  : process.platform === "win32"
+    ? DATA_DIR
+    : "/storage/cms";
+const CONTENT_FILE = path.join(CONTENT_DIR, "site-content.json");
 const MEDIA_DIR = process.env.MEDIA_STORAGE_ROOT?.trim()
   ? path.resolve(process.env.MEDIA_STORAGE_ROOT)
   : process.platform === "win32"
@@ -140,19 +146,39 @@ export const deleteStoredMedia = async (fileName: string): Promise<boolean> => {
   }
 };
 
-export const readSiteContent = async (): Promise<SiteContent> => {
+const readContentFile = async (filePath: string): Promise<SiteContent | null> => {
   try {
-    const raw = await fs.readFile(CONTENT_FILE, "utf8");
+    const raw = await fs.readFile(filePath, "utf8");
     const parsed = JSON.parse(raw) as unknown;
     return mergeWithDefaultSiteContent(parsed);
   } catch {
-    return defaultSiteContent;
+    return null;
   }
+};
+
+export const readSiteContent = async (): Promise<SiteContent> => {
+  const persisted = await readContentFile(CONTENT_FILE);
+  if (persisted) return persisted;
+
+  // Backward compatibility: if the old local file exists, reuse it and persist to the new location.
+  const legacy = await readContentFile(LEGACY_CONTENT_FILE);
+  if (legacy) {
+    try {
+      await fs.mkdir(CONTENT_DIR, { recursive: true });
+      await fs.writeFile(CONTENT_FILE, JSON.stringify(legacy, null, 2), "utf8");
+    } catch {
+      // Ignore migration copy failures and continue serving legacy content.
+    }
+
+    return legacy;
+  }
+
+  return defaultSiteContent;
 };
 
 export const writeSiteContent = async (content: SiteContent): Promise<SiteContent> => {
   const normalized = mergeWithDefaultSiteContent(content);
-  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.mkdir(CONTENT_DIR, { recursive: true });
   await fs.writeFile(CONTENT_FILE, JSON.stringify(normalized, null, 2), "utf8");
   return normalized;
 };

@@ -20,6 +20,14 @@ npm run build
 npm run start
 ```
 
+## Persistencia en Railway
+- Archivos multimedia del CMS: por defecto se guardan en `/storage/media` (Linux).
+- Contenido editable del CMS (`site-content.json`): por defecto se guarda en `/storage/cms` (Linux).
+- Puedes sobrescribir rutas con variables de entorno:
+	- `MEDIA_STORAGE_ROOT`
+	- `CONTENT_STORAGE_ROOT`
+- Recomendado: montar el volumen persistente de Railway bajo `/storage` para conservar medios y contenido entre despliegues.
+
 ## Estructura clave
 - `app/layout.tsx`: metadata SEO y layout raiz
 - `app/page.tsx`: pagina principal
