@@ -132,6 +132,7 @@ function GalleryImageCard({ src, alt, onOpen, ariaLabel }: { src: string; alt: s
 
 export default function SurfWellnessLanding() {
   const [siteContent, setSiteContent] = useState<SiteContent>(defaultSiteContent);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [activeBeachName, setActiveBeachName] = useState<string | null>(null);
   const [selectedPackageClasses, setSelectedPackageClasses] = useState<number>(
@@ -189,6 +190,8 @@ export default function SurfWellnessLanding() {
   const trackCta = (placement: string, offer: string) => {
     trackEvent("cta_whatsapp_click", { placement, offer, locale: "es" });
   };
+
+  const closeMobileNav = () => setIsMobileNavOpen(false);
 
   const packagePlans = useMemo(
     () =>
@@ -396,6 +399,17 @@ export default function SurfWellnessLanding() {
     return () => window.clearInterval(interval);
   }, [heroEmbed, storyEmbed]);
 
+  useEffect(() => {
+    const closeMenuOnDesktop = () => {
+      if (window.innerWidth > 860) {
+        setIsMobileNavOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", closeMenuOnDesktop);
+    return () => window.removeEventListener("resize", closeMenuOnDesktop);
+  }, []);
+
   return (
     <>
       <div className="bg-grain" />
@@ -427,10 +441,37 @@ export default function SurfWellnessLanding() {
                 <span className="brand-text-bottom">Surf School</span>
               </span>
             </a>
-            <div className="topbar-actions">
-              <a className="link-chip" href="#experiencia">Experiencia</a>
-              <a className="link-chip" href="#paquetes">Paquetes</a>
-              <a className="link-chip link-chip-cta" href="#playas">Playas</a>
+            <button
+              type="button"
+              className={`mobile-nav-toggle${isMobileNavOpen ? " is-open" : ""}`}
+              aria-label={isMobileNavOpen ? "Cerrar menu principal" : "Abrir menu principal"}
+              aria-expanded={isMobileNavOpen}
+              aria-controls="topbar-menu"
+              onClick={() => setIsMobileNavOpen((current) => !current)}
+            >
+              <span className="mobile-nav-toggle-label">Menu</span>
+              <span className="mobile-nav-toggle-icon" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            </button>
+            <div id="topbar-menu" className={`topbar-actions${isMobileNavOpen ? " is-open" : ""}`}>
+              <a className="link-chip" href="#inicio" onClick={closeMobileNav}>
+                Inicio
+              </a>
+              <a className="link-chip" href="#experiencia" onClick={closeMobileNav}>
+                Experiencia
+              </a>
+              <a className="link-chip" href="#paquetes" onClick={closeMobileNav}>
+                Paquetes
+              </a>
+              <a className="link-chip" href="#playas" onClick={closeMobileNav}>
+                Playas
+              </a>
+              <a className="link-chip link-chip-cta" href="#planificador" onClick={closeMobileNav}>
+                Reservar Ahora
+              </a>
             </div>
           </nav>
 
