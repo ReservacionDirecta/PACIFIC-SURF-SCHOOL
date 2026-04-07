@@ -1,4 +1,5 @@
 import { promises as fs } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { defaultSiteContent, mergeWithDefaultSiteContent, type SiteContent } from "./siteContent";
 
@@ -20,6 +21,8 @@ let MEDIA_DIR = DEFAULT_MEDIA_DIR;
 let CONTENT_DIR = DEFAULT_CONTENT_DIR;
 
 const getContentFile = (): string => path.join(CONTENT_DIR, "site-content.json");
+const LOCAL_FALLBACK_CONTENT_DIR = path.join(DATA_DIR, "cms");
+const TEMP_FALLBACK_CONTENT_DIR = path.join(os.tmpdir(), "pacific-surf-cms");
 
 export type StoredMediaFile = {
   name: string;
@@ -83,10 +86,40 @@ const ensureContentDir = async (): Promise<void> => {
   try {
     await fs.mkdir(CONTENT_DIR, { recursive: true });
   } catch {
-    const fallbackContentDir = path.join(DATA_DIR, "cms");
-    await fs.mkdir(fallbackContentDir, { recursive: true });
-    CONTENT_DIR = fallbackContentDir;
+    await fs.mkdir(LOCAL_FALLBACK_CONTENT_DIR, { recursive: true });
+    CONTENT_DIR = LOCAL_FALLBACK_CONTENT_DIR;
   }
+};
+
+const isPermissionLikeError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) return false;
+  const maybeCode = (error as Error & { code?: string }).code;
+  return maybeCode === "EACCES" || maybeCode === "EPERM" || maybeCode === "EROFS";
+};
+
+const writeContentWithFallback = async (content: SiteContent): Promise<void> => {
+  const serialized = JSON.stringify(content, null, 2);
+  const candidateDirs = [CONTENT_DIR, LOCAL_FALLBACK_CONTENT_DIR, TEMP_FALLBACK_CONTENT_DIR].filter(
+    (value, index, all) => all.indexOf(value) === index
+  );
+
+  let lastError: unknown = null;
+
+  for (const dir of candidateDirs) {
+    try {
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(path.join(dir, "site-content.json"), serialized, "utf8");
+      CONTENT_DIR = dir;
+      return;
+    } catch (error) {
+      lastError = error;
+      if (!isPermissionLikeError(error) && dir === TEMP_FALLBACK_CONTENT_DIR) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Unable to write site content in any storage path");
 };
 
 export const saveUploadedMedia = async (fileName: string, buffer: Buffer): Promise<StoredMediaFile> => {
@@ -191,8 +224,7 @@ export const readSiteContent = async (): Promise<SiteContent> => {
     const oldLinuxContent = await readContentFile(oldLinuxPath);
     if (oldLinuxContent) {
       try {
-        await ensureContentDir();
-        await fs.writeFile(getContentFile(), JSON.stringify(oldLinuxContent, null, 2), "utf8");
+        await writeContentWithFallback(oldLinuxContent);
       } catch {
         // Ignore migration copy failures and continue serving migrated content.
       }
@@ -205,8 +237,7 @@ export const readSiteContent = async (): Promise<SiteContent> => {
   const legacy = await readContentFile(LEGACY_CONTENT_FILE);
   if (legacy) {
     try {
-      await ensureContentDir();
-      await fs.writeFile(getContentFile(), JSON.stringify(legacy, null, 2), "utf8");
+      await writeContentWithFallback(legacy);
     } catch {
       // Ignore migration copy failures and continue serving legacy content.
     }
@@ -219,7 +250,6 @@ export const readSiteContent = async (): Promise<SiteContent> => {
 
 export const writeSiteContent = async (content: SiteContent): Promise<SiteContent> => {
   const normalized = mergeWithDefaultSiteContent(content);
-  await ensureContentDir();
-  await fs.writeFile(getContentFile(), JSON.stringify(normalized, null, 2), "utf8");
+  await writeContentWithFallback(normalized);
   return normalized;
 };
