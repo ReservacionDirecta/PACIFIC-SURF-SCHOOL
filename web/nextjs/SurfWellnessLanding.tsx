@@ -135,6 +135,7 @@ export default function SurfWellnessLanding() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [activeBeachName, setActiveBeachName] = useState<string | null>(null);
+  const [plannerSyncTick, setPlannerSyncTick] = useState<number>(0);
   const [selectedPackageClasses, setSelectedPackageClasses] = useState<number>(
     defaultSiteContent.pricing.packages.find((plan) => plan.classes === 8)?.classes ||
       defaultSiteContent.pricing.packages[0].classes
@@ -149,6 +150,10 @@ export default function SurfWellnessLanding() {
   const [customerWhatsapp, setCustomerWhatsapp] = useState<string>("");
   const heroFrameRef = useRef<HTMLIFrameElement | null>(null);
   const storyFrameRef = useRef<HTMLIFrameElement | null>(null);
+  const firstClassDateInputRef = useRef<HTMLInputElement | null>(null);
+  const customerNameInputRef = useRef<HTMLInputElement | null>(null);
+  const customerEmailInputRef = useRef<HTMLInputElement | null>(null);
+  const customerWhatsappInputRef = useRef<HTMLInputElement | null>(null);
 
   const heroSource = siteContent.media.heroYoutubeUrl.trim();
   const storySource = siteContent.media.storyYoutubeUrl.trim();
@@ -192,6 +197,7 @@ export default function SurfWellnessLanding() {
   };
 
   const closeMobileNav = () => setIsMobileNavOpen(false);
+  const syncPlannerFields = () => setPlannerSyncTick((current) => current + 1);
 
   const packagePlans = useMemo(
     () =>
@@ -219,7 +225,11 @@ export default function SurfWellnessLanding() {
   const planFinal = planBase * (1 - selectedPlan.discount);
   const planSavings = planBase - planFinal;
   const isIndividualClass = selectedPlan.classes === 1;
-  const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail.trim());
+  const resolvedCustomerName = customerName.trim() || customerNameInputRef.current?.value.trim() || "";
+  const resolvedCustomerEmail = customerEmail.trim() || customerEmailInputRef.current?.value.trim() || "";
+  const resolvedCustomerWhatsapp = customerWhatsapp.trim() || customerWhatsappInputRef.current?.value.trim() || "";
+  const resolvedFirstClassDate = firstClassDate || firstClassDateInputRef.current?.value || "";
+  const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resolvedCustomerEmail);
 
   const toggleWeekday = (day: string) => {
     setSelectedWeekdays((current) =>
@@ -228,10 +238,10 @@ export default function SurfWellnessLanding() {
   };
 
   const isPlannerValid =
-    customerName.trim().length > 1 &&
+    resolvedCustomerName.length > 1 &&
     emailLooksValid &&
-    customerWhatsapp.trim().length > 7 &&
-    firstClassDate &&
+    resolvedCustomerWhatsapp.length > 7 &&
+    resolvedFirstClassDate &&
     selectedSlot &&
     (planCadence === "consecutivas" || selectedWeekdays.length > 0);
 
@@ -242,14 +252,14 @@ export default function SurfWellnessLanding() {
 
   const plannerMessage = [
     "Hola Pacific Surf School, quiero reservar mi plan de clases.",
-    `Nombre: ${customerName.trim() || "Por confirmar"}`,
-    `Correo: ${customerEmail.trim() || "Por confirmar"}`,
-    `WhatsApp cliente: ${customerWhatsapp.trim() || "Por confirmar"}`,
+    `Nombre: ${resolvedCustomerName || "Por confirmar"}`,
+    `Correo: ${resolvedCustomerEmail || "Por confirmar"}`,
+    `WhatsApp cliente: ${resolvedCustomerWhatsapp || "Por confirmar"}`,
     `${isIndividualClass ? "Clase elegida" : "Paquete elegido"}: ${selectedPlan.classes} ${
       selectedPlan.classes === 1 ? "clase" : "clases"
     }${selectedPlan.discount > 0 ? ` (${Math.round(selectedPlan.discount * 100)}% dscto)` : ""}`,
     `Tipo de clase: ${selectedClassType}`,
-    `Primera clase: ${firstClassDate || "Por confirmar"}`,
+    `Primera clase: ${resolvedFirstClassDate || "Por confirmar"}`,
     `Horario preferido: ${selectedSlot || "Por confirmar"}`,
     `Modalidad: ${planCadence}`,
     planningModeDetail,
@@ -408,6 +418,30 @@ export default function SurfWellnessLanding() {
 
     window.addEventListener("resize", closeMenuOnDesktop);
     return () => window.removeEventListener("resize", closeMenuOnDesktop);
+  }, []);
+
+  useEffect(() => {
+    let attempts = 0;
+
+    const interval = window.setInterval(() => {
+      attempts += 1;
+      const hasAutofilledValue = [
+        customerNameInputRef.current?.value,
+        customerEmailInputRef.current?.value,
+        customerWhatsappInputRef.current?.value,
+        firstClassDateInputRef.current?.value,
+      ].some((value) => Boolean(value && value.trim().length > 0));
+
+      if (hasAutofilledValue) {
+        setPlannerSyncTick((current) => current + 1);
+      }
+
+      if (attempts >= 12) {
+        window.clearInterval(interval);
+      }
+    }, 500);
+
+    return () => window.clearInterval(interval);
   }, []);
 
   return (
@@ -774,10 +808,12 @@ export default function SurfWellnessLanding() {
                   <label>
                     Primera clase
                     <input
+                      ref={firstClassDateInputRef}
                       type="date"
                       min={todayIso}
                       value={firstClassDate}
                       onChange={(event) => setFirstClassDate(event.target.value)}
+                      onInput={syncPlannerFields}
                     />
                   </label>
                 </div>
@@ -850,28 +886,37 @@ export default function SurfWellnessLanding() {
                   <label>
                     Nombre completo
                     <input
+                      ref={customerNameInputRef}
                       type="text"
+                      autoComplete="name"
                       placeholder="Ej. Andrea Salazar"
                       value={customerName}
                       onChange={(event) => setCustomerName(event.target.value)}
+                      onInput={syncPlannerFields}
                     />
                   </label>
                   <label>
                     Correo
                     <input
+                      ref={customerEmailInputRef}
                       type="email"
+                      autoComplete="email"
                       placeholder="correo@ejemplo.com"
                       value={customerEmail}
                       onChange={(event) => setCustomerEmail(event.target.value)}
+                      onInput={syncPlannerFields}
                     />
                   </label>
                   <label>
                     WhatsApp
                     <input
+                      ref={customerWhatsappInputRef}
                       type="tel"
+                      autoComplete="tel"
                       placeholder="+51 9XX XXX XXX"
                       value={customerWhatsapp}
                       onChange={(event) => setCustomerWhatsapp(event.target.value)}
+                      onInput={syncPlannerFields}
                     />
                   </label>
                 </div>
@@ -888,7 +933,7 @@ export default function SurfWellnessLanding() {
                 <li>Tarifa base: {toPen(planBase)}</li>
                 <li>Ahorro por paquete: {toPen(planSavings)}</li>
                 <li>Horario elegido: {selectedSlot}</li>
-                <li>Inicio: {firstClassDate || "Por definir"}</li>
+                <li>Inicio: {resolvedFirstClassDate || "Por definir"}</li>
                 <li>
                   Ritmo: {planCadence === "consecutivas" ? "Consecutivas" : `Semanales (${selectedWeekdays.join(", ") || "por definir"})`}
                 </li>
