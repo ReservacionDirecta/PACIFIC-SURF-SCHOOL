@@ -450,19 +450,21 @@ export default function SurfWellnessLanding() {
       <header className="hero" id="inicio">
         <div className="hero-media" aria-hidden="true">
           <div className="hero-poster" style={{ backgroundImage: `url(${HERO_POSTER})` }} />
-          {heroIsHostedVideo ? (
-            <video className="hero-video hero-native-video" src={heroSource} autoPlay muted loop playsInline preload="metadata" />
-          ) : heroEmbed ? (
-            <iframe
-              ref={heroFrameRef}
-              className="hero-video"
-              src={heroEmbed}
-              title="Alumno tomando clase de surf en Barranquito"
-              loading="eager"
-              onLoad={() => syncYoutubePlayer(heroFrameRef.current)}
-              allow="autoplay; encrypted-media; picture-in-picture"
-            />
-          ) : null}
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            {heroIsHostedVideo ? (
+              <video className="hero-video hero-native-video" src={heroSource} autoPlay muted loop playsInline preload="metadata" />
+            ) : heroEmbed ? (
+              <iframe
+                ref={heroFrameRef}
+                className="hero-video"
+                src={heroEmbed}
+                title="Alumno tomando clase de surf en Barranquito"
+                loading="eager"
+                onLoad={() => syncYoutubePlayer(heroFrameRef.current)}
+                allow="autoplay; encrypted-media; picture-in-picture"
+              />
+            ) : null}
+          </div>
           <div className="hero-overlay" />
         </div>
 
