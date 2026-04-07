@@ -524,7 +524,7 @@ export default function SurfWellnessLanding() {
       <header className="hero" id="inicio">
         <div className="hero-media" aria-hidden="true">
           <div className="hero-poster" style={{ backgroundImage: `url(${HERO_POSTER})` }} />
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          <div className="hero-media-viewport">
             {heroIsHostedVideo ? (
               <video className="hero-video hero-native-video" src={heroSource} autoPlay muted loop playsInline preload="metadata" />
             ) : heroEmbed ? (

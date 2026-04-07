@@ -61,7 +61,8 @@ h3,
 }
 
 .hero {
-  min-height: min(860px, 90vh);
+  min-height: 100vh;
+  min-height: 100svh;
   padding: 1rem 0 2.2rem;
   position: relative;
 }
@@ -93,9 +94,12 @@ h3,
 }
 
 .hero-video {
-  width: auto;
-  height: 100%;
-  aspect-ratio: 16 / 9;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100vw, 177.78svh);
+  height: max(56.25vw, 100svh);
+  transform: translate(-50%, -50%);
   object-fit: cover;
   border: 0;
   pointer-events: none;
@@ -103,8 +107,12 @@ h3,
 
 .hero-native-video {
   object-fit: cover;
-  width: 100%;
-  height: 100%;
+}
+
+.hero-media-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
 .hero-overlay {
@@ -325,6 +333,15 @@ h3,
   grid-template-columns: minmax(0, 1fr) minmax(290px, 0.72fr);
   gap: 1.1rem;
   align-items: stretch;
+  width: min(100%, 1040px);
+  margin-inline: auto;
+}
+
+@media (min-width: 861px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.78fr);
+    align-items: center;
+  }
 }
 
 .hero-content,
@@ -1687,13 +1704,18 @@ h1 {
   }
 
   .hero {
-    min-height: unset;
+    min-height: 100svh;
     padding-bottom: 2.1rem;
   }
 
   .hero-grid,
   .story-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero-grid {
+    width: min(100%, 660px);
+    gap: 0.9rem;
   }
 
   .hero-mini {
@@ -1812,6 +1834,11 @@ h1 {
   .hero-content,
   .hero-panel {
     border-radius: 1rem;
+  }
+
+  .hero-grid {
+    width: 100%;
+    gap: 0.75rem;
   }
 
   .brand-logo {
