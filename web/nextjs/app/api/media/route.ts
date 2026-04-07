@@ -31,8 +31,9 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const saved = await saveUploadedMedia(file.name, Buffer.from(arrayBuffer));
     return NextResponse.json({ file: saved }, { status: 201 });
-  } catch {
-    return NextResponse.json({ message: "Upload failed" }, { status: 400 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload failed";
+    return NextResponse.json({ message: `Upload failed: ${message}` }, { status: 500 });
   }
 }
 

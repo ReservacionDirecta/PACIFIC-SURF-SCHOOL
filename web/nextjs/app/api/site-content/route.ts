@@ -26,7 +26,12 @@ export async function PUT(request: Request) {
     const normalized = mergeWithDefaultSiteContent(body.content);
     const saved = await writeSiteContent(normalized);
     return NextResponse.json({ content: saved });
-  } catch {
-    return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
+    }
+
+    const message = error instanceof Error ? error.message : "Storage write failed";
+    return NextResponse.json({ message: `Save failed: ${message}` }, { status: 500 });
   }
 }

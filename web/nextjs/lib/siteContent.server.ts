@@ -3,19 +3,23 @@ import path from "node:path";
 import { defaultSiteContent, mergeWithDefaultSiteContent, type SiteContent } from "./siteContent";
 
 const DATA_DIR = path.join(process.cwd(), "data");
-const MEDIA_DIR = process.env.MEDIA_STORAGE_ROOT?.trim()
+const DEFAULT_MEDIA_DIR = process.env.MEDIA_STORAGE_ROOT?.trim()
   ? path.resolve(process.env.MEDIA_STORAGE_ROOT)
   : process.platform === "win32"
     ? path.join(DATA_DIR, "media")
     : "/storage/media";
 const LEGACY_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
 const LEGACY_CONTENT_DIR_LINUX = "/storage/cms";
-const CONTENT_DIR = process.env.CONTENT_STORAGE_ROOT?.trim()
+const DEFAULT_CONTENT_DIR = process.env.CONTENT_STORAGE_ROOT?.trim()
   ? path.resolve(process.env.CONTENT_STORAGE_ROOT)
   : process.platform === "win32"
     ? path.join(DATA_DIR, "cms")
-    : path.join(MEDIA_DIR, "cms");
-const CONTENT_FILE = path.join(CONTENT_DIR, "site-content.json");
+    : path.join(DEFAULT_MEDIA_DIR, "cms");
+
+let MEDIA_DIR = DEFAULT_MEDIA_DIR;
+let CONTENT_DIR = DEFAULT_CONTENT_DIR;
+
+const getContentFile = (): string => path.join(CONTENT_DIR, "site-content.json");
 
 export type StoredMediaFile = {
   name: string;
@@ -62,7 +66,27 @@ const buildMediaUrl = (fileName: string): string => `/media/${encodeURIComponent
 export const getMediaStorageRoot = (): string => MEDIA_DIR;
 
 export const ensureMediaDir = async (): Promise<void> => {
-  await fs.mkdir(MEDIA_DIR, { recursive: true });
+  try {
+    await fs.mkdir(MEDIA_DIR, { recursive: true });
+  } catch {
+    const fallbackMediaDir = path.join(DATA_DIR, "media");
+    await fs.mkdir(fallbackMediaDir, { recursive: true });
+    MEDIA_DIR = fallbackMediaDir;
+
+    if (!process.env.CONTENT_STORAGE_ROOT?.trim()) {
+      CONTENT_DIR = path.join(fallbackMediaDir, "cms");
+    }
+  }
+};
+
+const ensureContentDir = async (): Promise<void> => {
+  try {
+    await fs.mkdir(CONTENT_DIR, { recursive: true });
+  } catch {
+    const fallbackContentDir = path.join(DATA_DIR, "cms");
+    await fs.mkdir(fallbackContentDir, { recursive: true });
+    CONTENT_DIR = fallbackContentDir;
+  }
 };
 
 export const saveUploadedMedia = async (fileName: string, buffer: Buffer): Promise<StoredMediaFile> => {
@@ -158,7 +182,7 @@ const readContentFile = async (filePath: string): Promise<SiteContent | null> =>
 };
 
 export const readSiteContent = async (): Promise<SiteContent> => {
-  const persisted = await readContentFile(CONTENT_FILE);
+  const persisted = await readContentFile(getContentFile());
   if (persisted) return persisted;
 
   // Backward compatibility for previous default Linux path.
@@ -167,8 +191,8 @@ export const readSiteContent = async (): Promise<SiteContent> => {
     const oldLinuxContent = await readContentFile(oldLinuxPath);
     if (oldLinuxContent) {
       try {
-        await fs.mkdir(CONTENT_DIR, { recursive: true });
-        await fs.writeFile(CONTENT_FILE, JSON.stringify(oldLinuxContent, null, 2), "utf8");
+        await ensureContentDir();
+        await fs.writeFile(getContentFile(), JSON.stringify(oldLinuxContent, null, 2), "utf8");
       } catch {
         // Ignore migration copy failures and continue serving migrated content.
       }
@@ -181,8 +205,8 @@ export const readSiteContent = async (): Promise<SiteContent> => {
   const legacy = await readContentFile(LEGACY_CONTENT_FILE);
   if (legacy) {
     try {
-      await fs.mkdir(CONTENT_DIR, { recursive: true });
-      await fs.writeFile(CONTENT_FILE, JSON.stringify(legacy, null, 2), "utf8");
+      await ensureContentDir();
+      await fs.writeFile(getContentFile(), JSON.stringify(legacy, null, 2), "utf8");
     } catch {
       // Ignore migration copy failures and continue serving legacy content.
     }
@@ -195,7 +219,7 @@ export const readSiteContent = async (): Promise<SiteContent> => {
 
 export const writeSiteContent = async (content: SiteContent): Promise<SiteContent> => {
   const normalized = mergeWithDefaultSiteContent(content);
-  await fs.mkdir(CONTENT_DIR, { recursive: true });
-  await fs.writeFile(CONTENT_FILE, JSON.stringify(normalized, null, 2), "utf8");
+  await ensureContentDir();
+  await fs.writeFile(getContentFile(), JSON.stringify(normalized, null, 2), "utf8");
   return normalized;
 };

@@ -231,9 +231,8 @@ export default function AdminPage() {
   const [testimonialLines, setTestimonialLines] = useState<string>(toTestimonialLines(initial.testimonials));
   const [comparisonLines, setComparisonLines] = useState<string>(toComparisonLines(initial.comparisonRows));
   const [faqLines, setFaqLines] = useState<string>(toFaqLines(initial.faqItems));
-  const [instagramLines, setInstagramLines] = useState<string>(toLines(initial.media.instagramLinks));
-  const [instagramVideoLines, setInstagramVideoLines] = useState<string>(
-    toLines(initial.media.instagramVideoLinks)
+  const [instagramLines, setInstagramLines] = useState<string>(
+    toLines([...initial.media.instagramLinks, ...initial.media.instagramVideoLinks])
   );
   const [youtubeGalleryLines, setYoutubeGalleryLines] = useState<string>(
     toLines(initial.media.youtubeGalleryLinks)
@@ -252,8 +251,7 @@ export default function AdminPage() {
     setTestimonialLines(toTestimonialLines(source.testimonials));
     setComparisonLines(toComparisonLines(source.comparisonRows));
     setFaqLines(toFaqLines(source.faqItems));
-    setInstagramLines(toLines(source.media.instagramLinks));
-    setInstagramVideoLines(toLines(source.media.instagramVideoLinks));
+    setInstagramLines(toLines([...source.media.instagramLinks, ...source.media.instagramVideoLinks]));
     setYoutubeGalleryLines(toLines(source.media.youtubeGalleryLinks));
     setImageLines(toImageLines(source.media.galleryImages));
     setPricingLines(toPricingLines(source.pricing.packages));
@@ -365,7 +363,7 @@ export default function AdminPage() {
 
   const addFileToGallery = (file: StoredMediaFile) => {
     if (file.mimeType.startsWith("video/")) {
-      setInstagramVideoLines((current) => appendUniqueLine(current, file.url));
+      setInstagramLines((current) => appendUniqueLine(current, file.url));
       setSavedNotice(`Video ${file.name} agregado a galeria interna. Guarda cambios para persistir.`);
       return;
     }
@@ -387,7 +385,12 @@ export default function AdminPage() {
       });
 
       if (!response.ok) {
-        setErrorNotice(response.status === 401 ? "Token invalido para eliminar archivos." : "No se pudo eliminar el archivo.");
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        setErrorNotice(
+          response.status === 401
+            ? "Token invalido para eliminar archivos."
+            : payload.message || "No se pudo eliminar el archivo."
+        );
         return;
       }
 
@@ -414,7 +417,12 @@ export default function AdminPage() {
         });
 
         if (!response.ok) {
-          setErrorNotice(response.status === 401 ? "Token invalido para subir archivos." : `No se pudo subir ${file.name}.`);
+          const payload = (await response.json().catch(() => ({}))) as { message?: string };
+          setErrorNotice(
+            response.status === 401
+              ? "Token invalido para subir archivos."
+              : payload.message || `No se pudo subir ${file.name}.`
+          );
           return;
         }
       }
@@ -435,7 +443,7 @@ export default function AdminPage() {
     const faqItems = parseFaqLines(faqLines);
     const pricingPackages = parsePricingLines(pricingLines);
     const beaches = normalizeBeachDrafts(beachesDraft);
-    const galleryVideos = parseLines(instagramVideoLines).length + parseLines(youtubeGalleryLines).length;
+    const galleryVideos = parseLines(instagramLines).length + parseLines(youtubeGalleryLines).length;
     const galleryImages = parseImageLines(imageLines).length;
 
     return [
@@ -505,7 +513,7 @@ export default function AdminPage() {
     faqLines,
     heroPointsLines,
     imageLines,
-    instagramVideoLines,
+    instagramLines,
     beachesDraft,
     pricingLines,
     testimonialLines,
@@ -554,7 +562,7 @@ export default function AdminPage() {
       media: {
         ...content.media,
         instagramLinks: parseLines(instagramLines),
-        instagramVideoLinks: parseLines(instagramVideoLines),
+        instagramVideoLinks: [],
         youtubeGalleryLinks: parseLines(youtubeGalleryLines),
         galleryImages: parseImageLines(imageLines),
       },
@@ -572,8 +580,11 @@ export default function AdminPage() {
       });
 
       if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
         setNotice("error");
-        setNoticeMessage(response.status === 401 ? "Token invalido para guardar." : "No se pudo guardar.");
+        setNoticeMessage(
+          response.status === 401 ? "Token invalido para guardar." : payload.message || "No se pudo guardar."
+        );
         return;
       }
 
@@ -604,8 +615,13 @@ export default function AdminPage() {
       });
 
       if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
         setNotice("error");
-        setNoticeMessage(response.status === 401 ? "Token invalido para restaurar." : "No se pudo restaurar.");
+        setNoticeMessage(
+          response.status === 401
+            ? "Token invalido para restaurar."
+            : payload.message || "No se pudo restaurar."
+        );
         return;
       }
 
@@ -1298,21 +1314,12 @@ export default function AdminPage() {
                     />
                   </label>
                   <label>
-                    Links de posts (1 por línea)
+                    Links de Instagram (Reel/Post, 1 por linea)
                     <textarea
                       rows={4}
-                      placeholder="https://instagram.com/p/...&#10;Un link por línea"
+                      placeholder="https://www.instagram.com/pacific_surfschool/reel/DVW8kmpgMOM/&#10;https://instagram.com/p/...&#10;Tambien puedes pegar un video directo estable&#10;Un link por linea"
                       value={instagramLines}
                       onChange={(event) => setInstagramLines(event.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Videos MP4 (URLs directas, 1 por línea)
-                    <textarea
-                      rows={4}
-                      placeholder="https://ejemplo.com/video.mp4&#10;Archivos de video directos"
-                      value={instagramVideoLines}
-                      onChange={(event) => setInstagramVideoLines(event.target.value)}
                     />
                   </label>
                   <label>

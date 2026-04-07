@@ -32,6 +32,12 @@ type GalleryItem =
       src: string;
     }
   | {
+      type: "instagramEmbed";
+      alt: string;
+      permalink: string;
+      embedUrl: string;
+    }
+  | {
       type: "youtube";
       alt: string;
       permalink: string;
@@ -61,6 +67,30 @@ const isDirectVideoUrl = (value: string): boolean => /\.(mp4|webm|mov)(\?|$)/i.t
 
 const isDirectImageUrl = (value: string): boolean => /\.(jpg|jpeg|png|webp|gif|svg)(\?|$)/i.test(value.trim());
 
+const isExpiringInstagramProxyUrl = (value: string): boolean => {
+  const input = value.trim();
+  return (
+    input.includes("media.sssinstagram.com/get") ||
+    input.includes("__expires=") ||
+    input.includes("scontent-")
+  );
+};
+
+const toInstagramEmbedData = (value: string): { permalink: string; embedUrl: string } | null => {
+  const input = value.trim();
+  if (!input) return null;
+
+  const match = input.match(/instagram\.com\/(reel|p|tv)\/([^/?#]+)/i);
+  if (!match) return null;
+
+  const kind = match[1].toLowerCase();
+  const shortcode = match[2];
+  const permalink = `https://www.instagram.com/${kind}/${shortcode}/`;
+  const embedUrl = `${permalink}embed/captioned/`;
+
+  return { permalink, embedUrl };
+};
+
 const toYouTubeEmbedUrl = (url: string, options?: { loop?: boolean; autoplay?: boolean }): string | null => {
   const id = extractYouTubeId(url);
   if (!id) return null;
@@ -77,6 +107,7 @@ const toPen = (value: number) => `S/.${Math.round(value)}`;
 
 function GalleryVideoCard({ src }: { src: string }) {
   const [orientation, setOrientation] = useState<MediaOrientation>("portrait");
+  const [hasError, setHasError] = useState<boolean>(false);
 
   const updateOrientation = (width: number, height: number) => {
     if (!width || !height) return;
@@ -90,20 +121,28 @@ function GalleryVideoCard({ src }: { src: string }) {
 
   return (
     <article className="gallery-item gallery-item-video">
-      <div className={`gallery-media-wrap gallery-media-wrap-${orientation}`}>
-        <video
-          className="gallery-native-video"
-          src={src}
-          muted
-          autoPlay
-          loop
-          playsInline
-          preload="metadata"
-          onLoadedMetadata={(event) =>
-            updateOrientation(event.currentTarget.videoWidth, event.currentTarget.videoHeight)
-          }
-        />
-      </div>
+      {hasError ? (
+        <div className="gallery-media-wrap gallery-media-wrap-portrait gallery-media-fallback">
+          <p>Este video de Instagram ya expiro.</p>
+          <small>Usa un enlace permanente del Reel/Post en el CMS.</small>
+        </div>
+      ) : (
+        <div className={`gallery-media-wrap gallery-media-wrap-${orientation}`}>
+          <video
+            className="gallery-native-video"
+            src={src}
+            muted
+            autoPlay
+            loop
+            playsInline
+            preload="metadata"
+            onError={() => setHasError(true)}
+            onLoadedMetadata={(event) =>
+              updateOrientation(event.currentTarget.videoWidth, event.currentTarget.videoHeight)
+            }
+          />
+        </div>
+      )}
     </article>
   );
 }
@@ -278,19 +317,47 @@ export default function SurfWellnessLanding() {
 
   const plannerHref = `https://wa.me/51915168620?text=${encodeURIComponent(plannerMessage)}`;
 
-  const instagramVideoItems = useMemo<GalleryItem[]>(() => {
-    return siteContent.media.instagramVideoLinks
-      .map((src) => {
-        const cleanSrc = src.trim();
-        if (!cleanSrc) return null;
+  const instagramManualItems = useMemo<GalleryItem[]>(() => {
+    const mergedLinks = [...siteContent.media.instagramLinks, ...siteContent.media.instagramVideoLinks]
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .filter((value, index, all) => all.indexOf(value) === index);
+
+    return mergedLinks
+      .map((value) => {
+        const embedData = toInstagramEmbedData(value);
+        if (!embedData) return null;
+
         return {
-          type: "instagramVideo",
-          alt: "Video de Instagram de Pacific Surf School",
-          src: cleanSrc,
+          type: "instagramEmbed",
+          alt: "Publicacion de Instagram de Pacific Surf School",
+          permalink: embedData.permalink,
+          embedUrl: embedData.embedUrl,
         } as GalleryItem;
       })
       .filter((item): item is GalleryItem => item !== null);
-  }, [siteContent.media.instagramVideoLinks]);
+  }, [siteContent.media.instagramLinks, siteContent.media.instagramVideoLinks]);
+
+  const instagramVideoItems = useMemo<GalleryItem[]>(() => {
+    const mergedLinks = [...siteContent.media.instagramLinks, ...siteContent.media.instagramVideoLinks]
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .filter((value, index, all) => all.indexOf(value) === index);
+
+    return mergedLinks
+      .map((value) => {
+        if (toInstagramEmbedData(value)) return null;
+        if (!isDirectVideoUrl(value)) return null;
+        if (isExpiringInstagramProxyUrl(value)) return null;
+
+        return {
+          type: "instagramVideo",
+          alt: "Video de galeria de Pacific Surf School",
+          src: value,
+        } as GalleryItem;
+      })
+      .filter((item): item is GalleryItem => item !== null);
+  }, [siteContent.media.instagramLinks, siteContent.media.instagramVideoLinks]);
 
   const instagramLatestItems = useMemo<GalleryItem[]>(() => {
     return instagramLatestPosts
@@ -336,9 +403,10 @@ export default function SurfWellnessLanding() {
     const autoInstagram =
       siteContent.media.instagramAutoFeedEnabled && instagramLatestItems.length > 0 ? instagramLatestItems : [];
 
-    return [...autoInstagram, ...instagramVideoItems, ...youtubeItems, ...imageItems];
+    return [...autoInstagram, ...instagramManualItems, ...instagramVideoItems, ...youtubeItems, ...imageItems];
   }, [
     instagramLatestItems,
+    instagramManualItems,
     instagramVideoItems,
     siteContent.media.galleryImages,
     siteContent.media.instagramAutoFeedEnabled,
@@ -729,6 +797,25 @@ export default function SurfWellnessLanding() {
 
               if (item.type === "instagramVideo") {
                 return <GalleryVideoCard key={`${item.src}-${index}`} src={item.src} />;
+              }
+
+              if (item.type === "instagramEmbed") {
+                return (
+                  <article key={`${item.permalink}-${index}`} className="gallery-item gallery-item-video">
+                    <div className="gallery-media-wrap gallery-media-wrap-portrait">
+                      <iframe
+                        className="instagram-frame"
+                        src={item.embedUrl}
+                        title={item.alt}
+                        loading="lazy"
+                        allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                      />
+                    </div>
+                    <a className="instagram-link" href={item.permalink} target="_blank" rel="noopener noreferrer">
+                      Ver Reel/Post en Instagram
+                    </a>
+                  </article>
+                );
               }
 
               if (item.type === "youtube") {
