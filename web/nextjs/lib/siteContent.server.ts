@@ -57,7 +57,7 @@ const guessMimeType = (fileName: string): string => {
   }
 };
 
-const buildMediaUrl = (fileName: string): string => `/api/media/file/${encodeURIComponent(fileName)}`;
+const buildMediaUrl = (fileName: string): string => `/media/${encodeURIComponent(fileName)}`;
 
 export const getMediaStorageRoot = (): string => MEDIA_DIR;
 
