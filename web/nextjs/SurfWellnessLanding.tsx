@@ -21,6 +21,12 @@ type GalleryItem =
       imageIndex: number;
     }
   | {
+      type: "instagramPost";
+      src: string;
+      alt: string;
+      permalink: string;
+    }
+  | {
       type: "instagramVideo";
       alt: string;
       src: string;
@@ -148,6 +154,9 @@ export default function SurfWellnessLanding() {
   const [customerName, setCustomerName] = useState<string>("");
   const [customerEmail, setCustomerEmail] = useState<string>("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState<string>("");
+  const [instagramLatestPosts, setInstagramLatestPosts] = useState<
+    Array<{ id: string; mediaUrl: string; permalink: string; caption: string }>
+  >([]);
   const heroFrameRef = useRef<HTMLIFrameElement | null>(null);
   const storyFrameRef = useRef<HTMLIFrameElement | null>(null);
   const firstClassDateInputRef = useRef<HTMLInputElement | null>(null);
@@ -283,6 +292,23 @@ export default function SurfWellnessLanding() {
       .filter((item): item is GalleryItem => item !== null);
   }, [siteContent.media.instagramVideoLinks]);
 
+  const instagramLatestItems = useMemo<GalleryItem[]>(() => {
+    return instagramLatestPosts
+      .map((post) => {
+        const src = post.mediaUrl.trim();
+        const permalink = post.permalink.trim();
+        if (!src || !permalink) return null;
+
+        return {
+          type: "instagramPost",
+          src,
+          permalink,
+          alt: post.caption || "Publicacion de Instagram de Pacific Surf School",
+        } as GalleryItem;
+      })
+      .filter((item): item is GalleryItem => item !== null);
+  }, [instagramLatestPosts]);
+
   const youtubeItems = useMemo<GalleryItem[]>(() => {
     return siteContent.media.youtubeGalleryLinks
       .map((permalink) => {
@@ -307,8 +333,17 @@ export default function SurfWellnessLanding() {
       imageIndex,
     }));
 
-    return [...instagramVideoItems, ...youtubeItems, ...imageItems];
-  }, [instagramVideoItems, siteContent.media.galleryImages, youtubeItems]);
+    const autoInstagram =
+      siteContent.media.instagramAutoFeedEnabled && instagramLatestItems.length > 0 ? instagramLatestItems : [];
+
+    return [...autoInstagram, ...instagramVideoItems, ...youtubeItems, ...imageItems];
+  }, [
+    instagramLatestItems,
+    instagramVideoItems,
+    siteContent.media.galleryImages,
+    siteContent.media.instagramAutoFeedEnabled,
+    youtubeItems,
+  ]);
 
   const beaches = useMemo(() => siteContent.beaches, [siteContent.beaches]);
 
@@ -369,6 +404,45 @@ export default function SurfWellnessLanding() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadInstagramFeed = async () => {
+      if (!siteContent.media.instagramAutoFeedEnabled) {
+        if (isMounted) setInstagramLatestPosts([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/instagram-feed?limit=${encodeURIComponent(String(siteContent.media.instagramAutoFeedLimit || 6))}`,
+          { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+          if (isMounted) setInstagramLatestPosts([]);
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          posts?: Array<{ id: string; mediaUrl: string; permalink: string; caption: string }>;
+        };
+
+        if (isMounted) {
+          setInstagramLatestPosts(payload.posts || []);
+        }
+      } catch {
+        if (isMounted) setInstagramLatestPosts([]);
+      }
+    };
+
+    loadInstagramFeed();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [siteContent.media.instagramAutoFeedEnabled, siteContent.media.instagramAutoFeedLimit]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -629,7 +703,10 @@ export default function SurfWellnessLanding() {
             <h2>{siteContent.texts.galleryTitle}</h2>
           </div>
           <p className="gallery-note">
-            Videos publicados por Pacific Surf School. Mira mas contenido en{" "}
+            {siteContent.media.instagramAutoFeedEnabled
+              ? "Mostrando ultimas publicaciones de Instagram (si hay conexion), ademas de tu galeria manual."
+              : "Videos publicados por Pacific Surf School."}{" "}
+            Mira mas contenido en{" "}
             <a href={siteContent.media.instagramProfileUrl} target="_blank" rel="noopener noreferrer">
               @pacific_surfschool
             </a>
@@ -637,6 +714,19 @@ export default function SurfWellnessLanding() {
           </p>
           <div className="gallery-masonry">
             {galleryItems.map((item, index) => {
+              if (item.type === "instagramPost") {
+                return (
+                  <article key={`${item.permalink}-${index}`} className="gallery-item gallery-item-video">
+                    <div className="gallery-media-wrap gallery-media-wrap-square">
+                      <img className="gallery-media-image" src={item.src} alt={item.alt} loading="lazy" />
+                    </div>
+                    <a className="instagram-link" href={item.permalink} target="_blank" rel="noopener noreferrer">
+                      Ver post en Instagram
+                    </a>
+                  </article>
+                );
+              }
+
               if (item.type === "instagramVideo") {
                 return <GalleryVideoCard key={`${item.src}-${index}`} src={item.src} />;
               }

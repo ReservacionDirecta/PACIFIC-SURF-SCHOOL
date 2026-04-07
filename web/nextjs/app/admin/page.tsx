@@ -1315,7 +1315,50 @@ export default function AdminPage() {
                       onChange={(event) => setInstagramVideoLines(event.target.value)}
                     />
                   </label>
+                  <label>
+                    Activar feed automatico de Instagram
+                    <select
+                      value={content.media.instagramAutoFeedEnabled ? "si" : "no"}
+                      onChange={(event) =>
+                        setContent((current) => ({
+                          ...current,
+                          media: {
+                            ...current.media,
+                            instagramAutoFeedEnabled: event.target.value === "si",
+                          },
+                        }))
+                      }
+                    >
+                      <option value="no">No</option>
+                      <option value="si">Si</option>
+                    </select>
+                  </label>
+                  <label>
+                    Cantidad de publicaciones automaticas (1-12)
+                    <input
+                      type="number"
+                      min={1}
+                      max={12}
+                      value={content.media.instagramAutoFeedLimit}
+                      onChange={(event) =>
+                        setContent((current) => ({
+                          ...current,
+                          media: {
+                            ...current.media,
+                            instagramAutoFeedLimit: Math.min(
+                              12,
+                              Math.max(1, Number.parseInt(event.target.value || "6", 10) || 6)
+                            ),
+                          },
+                        }))
+                      }
+                    />
+                  </label>
                 </div>
+                <p style={{ margin: "0.8rem 0 0", opacity: 0.8, fontSize: "0.9rem" }}>
+                  Para usar el feed automatico, configura la variable de entorno del servidor <code>INSTAGRAM_ACCESS_TOKEN</code>.
+                  Si falla la conexion, la web sigue mostrando la galeria manual.
+                </p>
               </div>
 
               {/* Media Library */}

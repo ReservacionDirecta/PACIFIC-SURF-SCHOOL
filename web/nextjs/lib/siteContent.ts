@@ -67,6 +67,8 @@ export type EditableMediaContent = {
   heroYoutubeUrl: string;
   storyYoutubeUrl: string;
   instagramProfileUrl: string;
+  instagramAutoFeedEnabled: boolean;
+  instagramAutoFeedLimit: number;
   instagramLinks: string[];
   instagramVideoLinks: string[];
   youtubeGalleryLinks: string[];
@@ -296,6 +298,8 @@ export const defaultSiteContent: SiteContent = {
       process.env.NEXT_PUBLIC_STORY_VIDEO_ID || process.env.NEXT_PUBLIC_HERO_VIDEO_ID || "7gWl1-k6QpE"
     ),
     instagramProfileUrl: "https://www.instagram.com/pacific_surfschool/",
+    instagramAutoFeedEnabled: false,
+    instagramAutoFeedLimit: 6,
     instagramLinks: splitCsv(process.env.NEXT_PUBLIC_INSTAGRAM_POST_URLS || ""),
     instagramVideoLinks: splitCsv(process.env.NEXT_PUBLIC_INSTAGRAM_VIDEO_LINKS || ""),
     youtubeGalleryLinks: splitCsv(process.env.NEXT_PUBLIC_GALLERY_YOUTUBE_LINKS || ""),
@@ -475,6 +479,14 @@ export const mergeWithDefaultSiteContent = (input: unknown): SiteContent => {
       instagramProfileUrl: String(
         raw.media?.instagramProfileUrl || defaultSiteContent.media.instagramProfileUrl
       ),
+      instagramAutoFeedEnabled:
+        typeof raw.media?.instagramAutoFeedEnabled === "boolean"
+          ? raw.media.instagramAutoFeedEnabled
+          : defaultSiteContent.media.instagramAutoFeedEnabled,
+      instagramAutoFeedLimit:
+        Number.isFinite(Number(raw.media?.instagramAutoFeedLimit)) && Number(raw.media?.instagramAutoFeedLimit) >= 1
+          ? Math.min(12, Math.max(1, Math.round(Number(raw.media?.instagramAutoFeedLimit))))
+          : defaultSiteContent.media.instagramAutoFeedLimit,
       instagramLinks: Array.isArray(raw.media?.instagramLinks)
         ? raw.media?.instagramLinks.map((value) => String(value).trim()).filter(Boolean)
         : defaultSiteContent.media.instagramLinks,

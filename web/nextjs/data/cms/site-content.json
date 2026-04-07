@@ -1,0 +1,233 @@
+{
+  "seo": {
+    "title": "Escuela de Surf Premium en Barranquito | Paquetes 4 y 8 Clases | Pacific Surf School",
+    "description": "Mejora tu surf en Barranquito sin la saturacion de Makaha. Paquetes de 4 y 8 clases para ejecutivos en Lima. Reserva por WhatsApp y paga con Yape o Plin.",
+    "ogTitle": "Surf premium en Barranquito para ejecutivos de Lima | Pacific Surf School",
+    "ogDescription": "Paquetes de progresion 4 y 8 clases con reserva por WhatsApp y pago por Yape/Plin."
+  },
+  "texts": {
+    "heroEyebrow": "Barranquito, Lima",
+    "heroTitle": "Surf en Lima, bien hecho y sin el caos de spots saturados",
+    "heroLead": "Somos Pacific Surf School. Clases claras, progreso real y buena vibra en Barranquito para gente que quiere aprender de verdad.",
+    "heroPrimaryCta": "Quiero mi plan por WhatsApp",
+    "heroSecondaryCta": "Ver tarifas y paquetes",
+    "brandNote": "No vendemos una clase suelta. Disenamos una experiencia de progreso para que vuelvas al trabajo con energia, foco y la sensacion real de haber avanzado.",
+    "galleryEyebrow": "Galeria",
+    "galleryTitle": "La energia real de cada sesion, en imagenes",
+    "finalCtaTitle": "Reserva hoy y convierte el mar en tu mejor rutina de bienestar",
+    "finalCtaBody": "Escribenos por WhatsApp, recibe recomendacion en minutos y asegura tu horario en Barranquito.",
+    "finalCtaButton": "Reservar por WhatsApp ahora"
+  },
+  "pricing": {
+    "groupRate": 110,
+    "privateRate": 150,
+    "packages": [
+      {
+        "classes": 1,
+        "discount": 0
+      },
+      {
+        "classes": 4,
+        "discount": 0.05
+      },
+      {
+        "classes": 8,
+        "discount": 0.1
+      },
+      {
+        "classes": 12,
+        "discount": 0.15
+      },
+      {
+        "classes": 16,
+        "discount": 0.2
+      }
+    ]
+  },
+  "heroPoints": [
+    "Horarios que si calzan con tu semana: 6:00, 8:00, 10:00 y 4:00",
+    "Paquetes con descuento y coordinacion rapida por WhatsApp"
+  ],
+  "testimonials": [
+    {
+      "quote": "La coordinacion por WhatsApp me ahorro tiempo. En pocas sesiones ya senti progreso real.",
+      "author": "Profesional de tecnologia, 34"
+    },
+    {
+      "quote": "Buscaba desconectar sin caos en el agua. Barranquito fue justo lo que necesitaba.",
+      "author": "Consultora, 29"
+    },
+    {
+      "quote": "El plan de 8 clases me dio continuidad. No perdi ritmo entre semana y semana.",
+      "author": "Gerente comercial, 41"
+    }
+  ],
+  "comparisonRows": [
+    {
+      "factor": "Flujo de sesion",
+      "barranquito": "Mas ordenado para practicar tecnica",
+      "crowded": "Mayor congestion en horas pico"
+    },
+    {
+      "factor": "Experiencia para ejecutivos",
+      "barranquito": "Ambiente premium y enfocado",
+      "crowded": "Mayor ruido y friccion"
+    },
+    {
+      "factor": "Continuidad",
+      "barranquito": "Mejor para rutas de 4 y 8 clases",
+      "crowded": "Mas interrupciones en sesion"
+    }
+  ],
+  "faqItems": [
+    {
+      "question": "Nunca hice surf. Puedo empezar?",
+      "answer": "Si. El plan esta pensado para iniciar desde cero y progresar por etapas."
+    },
+    {
+      "question": "Como pago y confirmo mi cupo?",
+      "answer": "Se coordina por WhatsApp y la confirmacion se realiza con pago por Yape o Plin."
+    },
+    {
+      "question": "Cuanto tardan en responder?",
+      "answer": "Objetivo operativo: menos de 10 minutos en horario de atencion."
+    }
+  ],
+  "beaches": [
+    {
+      "name": "Barranquito",
+      "image": "/media/session-a.svg",
+      "alt": "Olas en Barranquito para clase de surf",
+      "main": true,
+      "description": "Nuestro punto base en Lima por su entorno mas ordenado para aprendizaje, sesiones progresivas y experiencia premium para alumnos locales y corporativos.",
+      "level": "Inicial a intermedio",
+      "bestWindow": "Mananas con mar limpio y menor trafico",
+      "googleMapsUrl": "https://maps.google.com/?q=Playa+Barranquito+Lima",
+      "tips": [
+        "Llega 20 minutos antes para revisar condiciones y estirar.",
+        "Usa bloqueador resistente al agua y lycra manga larga.",
+        "Ideal para construir tecnica base con sesiones progresivas."
+      ]
+    },
+    {
+      "name": "La Pampilla",
+      "image": "/media/session-b.svg",
+      "alt": "Vista de La Pampilla en la Costa Verde",
+      "main": false,
+      "description": "Spot de referencia en Miraflores con acceso rapido y olas consistentes segun temporada.",
+      "level": "Intermedio",
+      "bestWindow": "Temprano entre semana",
+      "googleMapsUrl": "https://maps.google.com/?q=Playa+La+Pampilla+Miraflores",
+      "tips": [
+        "Prioriza control de remada y lectura de serie antes de entrar.",
+        "Evita horas pico para mejorar seguridad y fluidez.",
+        "Revisa corrientes laterales antes de cada bloque."
+      ]
+    },
+    {
+      "name": "Redondo",
+      "image": "/media/session-c.svg",
+      "alt": "Playa Redondo en Lima para sesiones de surf",
+      "main": false,
+      "description": "Zona con energia variable donde entrenamos adaptacion de postura y timing de take-off.",
+      "level": "Intermedio",
+      "bestWindow": "Mananas y tardes con viento suave",
+      "googleMapsUrl": "https://maps.google.com/?q=Playa+Redondo+Miraflores",
+      "tips": [
+        "Manten distancia de seguridad al compartir pico.",
+        "Practica salida controlada para conservar energia.",
+        "Buena opcion para reforzar giros basicos."
+      ]
+    },
+    {
+      "name": "Punta Roquitas",
+      "image": "/media/session-a.svg",
+      "alt": "Zona de Punta Roquitas para practica de surf",
+      "main": false,
+      "description": "Punto tecnico para mejorar lineas y control de velocidad cuando el mar esta ordenado.",
+      "level": "Intermedio a avanzado",
+      "bestWindow": "Swell moderado y viento limpio",
+      "googleMapsUrl": "https://maps.google.com/?q=Punta+Roquitas+Lima",
+      "tips": [
+        "Calienta hombros y zona lumbar antes de entrar.",
+        "Define objetivo tecnico de la sesion en cada serie.",
+        "Usa leash en buen estado por seguridad."
+      ]
+    },
+    {
+      "name": "Triangulo",
+      "image": "/media/session-b.svg",
+      "alt": "Spot Triangulo con olas en Costa Verde",
+      "main": false,
+      "description": "Escenario util para trabajar lectura de ola y transiciones en diferentes secciones.",
+      "level": "Intermedio",
+      "bestWindow": "Mareas medias con mar ordenado",
+      "googleMapsUrl": "https://maps.google.com/?q=Playa+Triangulo+Lima",
+      "tips": [
+        "Observa 10 minutos las series antes de ingresar.",
+        "Entra con plan de posicionamiento y punto de salida.",
+        "Prioriza tecnica sobre volumen de olas tomadas."
+      ]
+    },
+    {
+      "name": "San Bartolo",
+      "image": "/media/session-c.svg",
+      "alt": "Mar en San Bartolo para clases avanzadas",
+      "main": false,
+      "description": "Destino ideal para sesiones avanzadas y progresion de maniobras en olas con mayor recorrido.",
+      "level": "Intermedio alto a avanzado",
+      "bestWindow": "Temporadas de mejor periodo de swell",
+      "googleMapsUrl": "https://maps.google.com/?q=Playa+San+Bartolo+Lima",
+      "tips": [
+        "Planifica traslado con anticipacion para aprovechar ventana de mar.",
+        "Lleva hidratacion y snack para sesiones largas.",
+        "Recomendado para alumnos con base tecnica consolidada."
+      ]
+    }
+  ],
+  "media": {
+    "heroYoutubeUrl": "https://www.youtube.com/watch?v=7gWl1-k6QpE",
+    "storyYoutubeUrl": "https://www.youtube.com/watch?v=7gWl1-k6QpE",
+    "instagramProfileUrl": "https://www.instagram.com/pacific_surfschool/",
+    "instagramAutoFeedEnabled": false,
+    "instagramAutoFeedLimit": 6,
+    "instagramLinks": [
+      "https://www.instagram.com/reel/DV8Wp9PAGNU/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+      "https://www.instagram.com/reel/DVW8kmpgMOM/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+      "https://www.instagram.com/reel/DVWJFafAHuV/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+      "https://www.instagram.com/reel/DUG0acjEQ8g/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+      "https://www.instagram.com/reel/DUd4xicDnVD/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+      "https://www.instagram.com/reel/DUBC38iAFTm/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+    ],
+    "instagramVideoLinks": [
+      "https://media.sssinstagram.com/get?__sig=fM74yEtT20sxv1dyvLibIQ&__expires=1775332170&uri=https%3A%2F%2Fscontent-lga3-1.cdninstagram.com%2Fo1%2Fv%2Ft2%2Ff2%2Fm86%2FAQMhWkJRaUfo2NktvZ2LjWcdvHbZDJUl5PtTDJtj6BNAzdkpqA3SmAI5WqPpFV8nb9GtMTf5U1sdce1a-oGI3s_srx-r5LjakqeNsgk.mp4%3F_nc_cat%3D111%26_nc_sid%3D5e9851%26_nc_ht%3Dscontent-lga3-1.cdninstagram.com%26_nc_ohc%3DrDS_8YwzGFsQ7kNvwGAQu2o%26efg%3DeyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTc5Mjk5NDM3MjQxNzk1MjYsImFzc2V0X2FnZV9kYXlzIjo2NywidmlfdXNlY2FzZV9pZCI6MTAwOTksImR1cmF0aW9uX3MiOjQ2LCJ1cmxnZW5fc291cmNlIjoid3d3In0%253D%26ccb%3D17-1%26vs%3D6b372c9d0fdb2244%26_nc_vs%3DHBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC9BOTRDODYxNzU0QzI5ODIyQzE0QTE2QzRDMTM5MzhCNF92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyLzRCNDAxNTIwNEE0Qzk3ODM5NDdFOUFFQ0RCMzdDMjgxX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACaMga7oiszZPxUCKAJDMywXQEcFHrhR64UYEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZeadAQA%26_nc_gid%3DeF2O_TqboCUk9oelebJ7EA%26_nc_zt%3D28%26_nc_ss%3D7a32e%26oh%3D00_Af3qYV9ygkyZH6auNnBZV_qiYqvlschUmsQN7Jq6dD0mxw%26oe%3D69D34D90%26dl%3D1&filename=Mart%C3%ADn%20%F0%9F%98%B3despu%C3%A9s%20de%20solo%20un%20par%20de%20clases!%23pacificsurfschoolperu%20%23camdenperu%20%23clasesdesurf%20%23cost.mp4&ua=-&referer=https%3A%2F%2Fwww.instagram.com%2F"
+    ],
+    "youtubeGalleryLinks": [],
+    "galleryImages": [
+      {
+        "src": "/media/session-a.svg",
+        "alt": "Alumno practicando take off en Barranquito"
+      },
+      {
+        "src": "/media/session-b.svg",
+        "alt": "Vista abierta del mar en Costa Verde durante clase"
+      },
+      {
+        "src": "/media/session-c.svg",
+        "alt": "Instructor corrigiendo postura antes de entrar al agua"
+      },
+      {
+        "src": "/media/session-a.svg",
+        "alt": "Alumno sonriendo despues de una buena ola"
+      },
+      {
+        "src": "/media/session-b.svg",
+        "alt": "Sesion de surf al atardecer en Barranquito"
+      },
+      {
+        "src": "/media/session-c.svg",
+        "alt": "Momento de remada y enfoque tecnico en clase"
+      }
+    ]
+  }
+}
