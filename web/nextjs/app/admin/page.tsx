@@ -226,6 +226,7 @@ export default function AdminPage() {
   const [content, setContent] = useState<SiteContent>(initial);
   const [adminToken, setAdminToken] = useState<string>("");
   const [mediaLibrary, setMediaLibrary] = useState<StoredMediaFile[]>([]);
+  const [activeSection, setActiveSection] = useState<string>("seo");
   const [heroPointsLines, setHeroPointsLines] = useState<string>(toLines(initial.heroPoints));
   const [testimonialLines, setTestimonialLines] = useState<string>(toTestimonialLines(initial.testimonials));
   const [comparisonLines, setComparisonLines] = useState<string>(toComparisonLines(initial.comparisonRows));
@@ -620,598 +621,996 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="section" style={{ paddingTop: "3rem", paddingBottom: "4rem" }}>
-      <p className="eyebrow">Admin</p>
-      <h1>Gestion de contenido de landing</h1>
-      <p className="lead" style={{ maxWidth: "70ch" }}>
-        Aqui puedes editar textos, videos y galerias. Los cambios se guardan en backend (Next.js) y se
-        reflejan en la home para todos los usuarios.
-      </p>
+    <div className="admin-layout">
+      {/* Header */}
+      <header className="admin-header">
+        <div className="admin-header-content">
+          <div>
+            <h1 className="admin-title">CMS Pacific Surf</h1>
+            <p className="admin-subtitle">Administra contenido, medios y configuración</p>
+          </div>
+          <a className="btn btn-secondary" href="/" target="_blank" rel="noopener noreferrer">
+            Ver landing →
+          </a>
+        </div>
+      </header>
 
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Acceso admin</h2>
-        </div>
-        <div className="booking-form-grid">
-          <label>
-            Token de administrador (Gabriel)
-            <input
-              type="password"
-              value={adminToken}
-              onChange={(event) => setAdminToken(event.target.value)}
-              placeholder="Ingresa CMS_ADMIN_TOKEN"
-            />
-          </label>
-        </div>
-        <p style={{ marginTop: "0.6rem", opacity: 0.8 }}>
-          En Railway, los archivos se guardan en el volumen montado en <strong>/storage/media</strong>.
-        </p>
-      </section>
-
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Checklist de publicacion</h2>
-        </div>
-        <div className="admin-checklist">
-          {publicationChecks.map((check) => (
-            <div key={check.label} className={`admin-check-item${check.ok ? " is-ok" : " is-warning"}`}>
-              <strong>{check.ok ? "OK" : "Revisar"}</strong>
-              <span>{check.label}</span>
+      <div className="admin-container">
+        {/* Sidebar Navigation */}
+        <nav className="admin-sidebar">
+          <div className="admin-sidebar-content">
+            <div className="admin-token-section">
+              <label className="admin-token-label">
+                Token admin:
+                <input
+                  type="password"
+                  value={adminToken}
+                  onChange={(event) => setAdminToken(event.target.value)}
+                  placeholder="CMS_ADMIN_TOKEN"
+                  className="admin-token-input"
+                />
+              </label>
             </div>
-          ))}
-        </div>
-      </section>
 
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>SEO</h2>
-        </div>
-        <div className="booking-form-grid">
-          <label>
-            Title
-            <input
-              type="text"
-              value={content.seo.title}
-              onChange={(event) =>
-                setContent((current) => ({ ...current, seo: { ...current.seo, title: event.target.value } }))
-              }
-            />
-          </label>
-          <label>
-            Description
-            <textarea
-              rows={3}
-              value={content.seo.description}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  seo: { ...current.seo, description: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            OG title
-            <input
-              type="text"
-              value={content.seo.ogTitle}
-              onChange={(event) =>
-                setContent((current) => ({ ...current, seo: { ...current.seo, ogTitle: event.target.value } }))
-              }
-            />
-          </label>
-          <label>
-            OG description
-            <textarea
-              rows={3}
-              value={content.seo.ogDescription}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  seo: { ...current.seo, ogDescription: event.target.value },
-                }))
-              }
-            />
-          </label>
-        </div>
-      </section>
-
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Textos</h2>
-        </div>
-        <div className="booking-form-grid">
-          <label>
-            Hero eyebrow
-            <input
-              type="text"
-              value={content.texts.heroEyebrow}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, heroEyebrow: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            CTA hero primario
-            <input
-              type="text"
-              value={content.texts.heroPrimaryCta}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, heroPrimaryCta: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            CTA hero secundario
-            <input
-              type="text"
-              value={content.texts.heroSecondaryCta}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, heroSecondaryCta: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            Hero titulo
-            <input
-              type="text"
-              value={content.texts.heroTitle}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, heroTitle: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            Hero descripcion
-            <textarea
-              rows={3}
-              value={content.texts.heroLead}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, heroLead: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            Nota de marca
-            <textarea
-              rows={3}
-              value={content.texts.brandNote}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, brandNote: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            Galeria eyebrow
-            <input
-              type="text"
-              value={content.texts.galleryEyebrow}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, galleryEyebrow: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            Galeria titulo
-            <input
-              type="text"
-              value={content.texts.galleryTitle}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, galleryTitle: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            CTA final titulo
-            <input
-              type="text"
-              value={content.texts.finalCtaTitle}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, finalCtaTitle: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            CTA final descripcion
-            <textarea
-              rows={3}
-              value={content.texts.finalCtaBody}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, finalCtaBody: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            CTA final boton
-            <input
-              type="text"
-              value={content.texts.finalCtaButton}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  texts: { ...current.texts, finalCtaButton: event.target.value },
-                }))
-              }
-            />
-          </label>
-        </div>
-      </section>
-
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Bloques de conversion</h2>
-        </div>
-        <div className="booking-form-grid">
-          <label>
-            Hero bullets (1 por linea)
-            <textarea rows={4} value={heroPointsLines} onChange={(event) => setHeroPointsLines(event.target.value)} />
-          </label>
-          <label>
-            Testimonios (formato: cita | autor)
-            <textarea rows={6} value={testimonialLines} onChange={(event) => setTestimonialLines(event.target.value)} />
-          </label>
-          <label>
-            Comparativo (formato: factor | Barranquito | Competencia)
-            <textarea rows={6} value={comparisonLines} onChange={(event) => setComparisonLines(event.target.value)} />
-          </label>
-          <label>
-            FAQs (formato: pregunta | respuesta)
-            <textarea rows={6} value={faqLines} onChange={(event) => setFaqLines(event.target.value)} />
-          </label>
-        </div>
-      </section>
-
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Precios y paquetes</h2>
-        </div>
-        <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
-          Estos valores alimentan todos los calculos y mensajes de WhatsApp del cotizador.
-        </p>
-        <div className="booking-form-grid">
-          <label>
-            Tarifa clase grupal (S/.)
-            <input
-              type="number"
-              min={1}
-              step={1}
-              value={content.pricing.groupRate}
-              onChange={(event) => {
-                const value = Number.parseInt(event.target.value, 10);
-                setContent((current) => ({
-                  ...current,
-                  pricing: {
-                    ...current.pricing,
-                    groupRate: Number.isFinite(value) ? value : current.pricing.groupRate,
-                  },
-                }));
-              }}
-            />
-          </label>
-          <label>
-            Tarifa clase personalizada (S/.)
-            <input
-              type="number"
-              min={1}
-              step={1}
-              value={content.pricing.privateRate}
-              onChange={(event) => {
-                const value = Number.parseInt(event.target.value, 10);
-                setContent((current) => ({
-                  ...current,
-                  pricing: {
-                    ...current.pricing,
-                    privateRate: Number.isFinite(value) ? value : current.pricing.privateRate,
-                  },
-                }));
-              }}
-            />
-          </label>
-          <label>
-            Paquetes (formato: clases | descuento)
-            <textarea rows={6} value={pricingLines} onChange={(event) => setPricingLines(event.target.value)} />
-          </label>
-        </div>
-      </section>
-
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Playas (modal de detalle)</h2>
-        </div>
-        <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
-          Editor visual para el modal de playas. Puedes marcar playa principal, ordenar y editar tips por separado.
-        </p>
-        <div style={{ display: "grid", gap: "0.9rem" }}>
-          {beachesDraft.map((beach, index) => (
-            <article
-              key={`${beach.name || "playa"}-${index}`}
-              style={{
-                border: "1px solid rgba(20,20,20,0.12)",
-                borderRadius: "0.9rem",
-                padding: "0.8rem",
-                background: "rgba(255,255,255,0.85)",
-              }}
-            >
-              <div className="cta-row" style={{ marginTop: 0, marginBottom: "0.6rem" }}>
-                <button className="btn btn-secondary" type="button" onClick={() => moveBeach(index, -1)}>
-                  Subir
+            <ul className="admin-nav-list">
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "checklist" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("checklist")}
+                >
+                  ✓ Checklist
                 </button>
-                <button className="btn btn-secondary" type="button" onClick={() => moveBeach(index, 1)}>
-                  Bajar
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "seo" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("seo")}
+                >
+                  🔍 SEO
                 </button>
-                <button className="btn btn-secondary" type="button" onClick={() => setMainBeach(index)}>
-                  {beach.main ? "Principal" : "Marcar principal"}
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "textos" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("textos")}
+                >
+                  ✏️ Textos
                 </button>
-                <button className="btn btn-secondary" type="button" onClick={() => removeBeach(index)}>
-                  Eliminar
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "bloques" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("bloques")}
+                >
+                  📦 Bloques
                 </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "precios" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("precios")}
+                >
+                  💰 Precios
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "playas" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("playas")}
+                >
+                  🏄 Playas
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "media" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("media")}
+                >
+                  🎬 Videos
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`admin-nav-button${activeSection === "galeria" ? " is-active" : ""}`}
+                  onClick={() => setActiveSection("galeria")}
+                >
+                  🖼️ Galería
+                </button>
+              </li>
+            </ul>
+
+            <div className="admin-sidebar-footer">
+              <button className="btn btn-primary" type="button" onClick={saveChanges} disabled={isSaving}>
+                {isSaving ? "Guardando..." : "💾 Guardar"}
+              </button>
+              <button className="btn btn-secondary" type="button" onClick={resetToDefault} disabled={isSaving}>
+                ↻ Restaurar
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main className="admin-content">
+          {/* Checklist Section */}
+          {activeSection === "checklist" && (
+            <section className="admin-panel">
+              <h2>Verificación de publicación</h2>
+              <p className="admin-panel-desc">Revisa que todos los elementos estén configurados correctamente antes de publicar.</p>
+              <div className="admin-checklist">
+                {publicationChecks.map((check) => (
+                  <div key={check.label} className={`admin-check-item${check.ok ? " is-ok" : " is-warning"}`}>
+                    <strong>{check.ok ? "✓" : "⚠"}</strong>
+                    <span>{check.label}</span>
+                  </div>
+                ))}
               </div>
+            </section>
+          )}
 
+          {/* SEO Section */}
+          {activeSection === "seo" && (
+            <section className="admin-panel">
+              <h2>SEO y Metadatos</h2>
+              <p className="admin-panel-desc">Configura cómo aparece el sitio en buscadores y redes sociales.</p>
               <div className="booking-form-grid">
                 <label>
-                  Nombre
+                  Título (Title tag)
                   <input
                     type="text"
-                    value={beach.name}
+                    value={content.seo.title}
                     onChange={(event) =>
-                      updateBeach(index, (current) => ({ ...current, name: event.target.value }))
+                      setContent((current) => ({ ...current, seo: { ...current.seo, title: event.target.value } }))
                     }
                   />
                 </label>
                 <label>
-                  Imagen (URL o /media/...)
-                  <input
-                    type="text"
-                    value={beach.image}
-                    onChange={(event) =>
-                      updateBeach(index, (current) => ({ ...current, image: event.target.value }))
-                    }
-                  />
-                </label>
-                <label>
-                  Alt de imagen
-                  <input
-                    type="text"
-                    value={beach.alt}
-                    onChange={(event) =>
-                      updateBeach(index, (current) => ({ ...current, alt: event.target.value }))
-                    }
-                  />
-                </label>
-                <label>
-                  Nivel recomendado
-                  <input
-                    type="text"
-                    value={beach.level}
-                    onChange={(event) =>
-                      updateBeach(index, (current) => ({ ...current, level: event.target.value }))
-                    }
-                  />
-                </label>
-                <label>
-                  Mejor ventana
-                  <input
-                    type="text"
-                    value={beach.bestWindow}
-                    onChange={(event) =>
-                      updateBeach(index, (current) => ({ ...current, bestWindow: event.target.value }))
-                    }
-                  />
-                </label>
-                <label>
-                  Link Google Maps
-                  <input
-                    type="text"
-                    value={beach.googleMapsUrl}
-                    onChange={(event) =>
-                      updateBeach(index, (current) => ({ ...current, googleMapsUrl: event.target.value }))
-                    }
-                  />
-                </label>
-                <label>
-                  Descripcion
+                  Descripción (Meta description)
                   <textarea
                     rows={3}
-                    value={beach.description}
+                    value={content.seo.description}
                     onChange={(event) =>
-                      updateBeach(index, (current) => ({ ...current, description: event.target.value }))
+                      setContent((current) => ({
+                        ...current,
+                        seo: { ...current.seo, description: event.target.value },
+                      }))
                     }
                   />
                 </label>
                 <label>
-                  Tips (1 por linea)
-                  <textarea
-                    rows={4}
-                    value={toLines(beach.tips)}
+                  Título para redes sociales
+                  <input
+                    type="text"
+                    value={content.seo.ogTitle}
                     onChange={(event) =>
-                      updateBeach(index, (current) => ({
+                      setContent((current) => ({ ...current, seo: { ...current.seo, ogTitle: event.target.value } }))
+                    }
+                  />
+                </label>
+                <label>
+                  Descripción para redes sociales
+                  <textarea
+                    rows={3}
+                    value={content.seo.ogDescription}
+                    onChange={(event) =>
+                      setContent((current) => ({
                         ...current,
-                        tips: parseLines(event.target.value),
+                        seo: { ...current.seo, ogDescription: event.target.value },
                       }))
                     }
                   />
                 </label>
               </div>
-            </article>
-          ))}
+            </section>
+          )}
 
-          <div>
-            <button
-              className="btn btn-secondary"
-              type="button"
-              onClick={() => setBeachesDraft((current) => [...current, createEmptyBeach()])}
-            >
-              Agregar playa
-            </button>
-          </div>
-        </div>
-      </section>
+          {/* Textos Section */}
+          {activeSection === "textos" && (
+            <section className="admin-panel">
+              <h2>Copys y CTAs</h2>
+              <p className="admin-panel-desc">Edita los textos principales de cada sección de la landing.</p>
+              <div className="booking-form-grid">
+                <label>
+                  Hero eyebrow
+                  <input
+                    type="text"
+                    value={content.texts.heroEyebrow}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, heroEyebrow: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  Hero título
+                  <input
+                    type="text"
+                    value={content.texts.heroTitle}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, heroTitle: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  Hero descripción
+                  <textarea
+                    rows={3}
+                    value={content.texts.heroLead}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, heroLead: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  CTA primario
+                  <input
+                    type="text"
+                    value={content.texts.heroPrimaryCta}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, heroPrimaryCta: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  CTA secundario
+                  <input
+                    type="text"
+                    value={content.texts.heroSecondaryCta}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, heroSecondaryCta: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  Nota de marca
+                  <textarea
+                    rows={3}
+                    value={content.texts.brandNote}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, brandNote: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  Galería eyebrow
+                  <input
+                    type="text"
+                    value={content.texts.galleryEyebrow}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, galleryEyebrow: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  Galería título
+                  <input
+                    type="text"
+                    value={content.texts.galleryTitle}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, galleryTitle: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  CTA final título
+                  <input
+                    type="text"
+                    value={content.texts.finalCtaTitle}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, finalCtaTitle: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  CTA final descripción
+                  <textarea
+                    rows={3}
+                    value={content.texts.finalCtaBody}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, finalCtaBody: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  CTA final botón
+                  <input
+                    type="text"
+                    value={content.texts.finalCtaButton}
+                    onChange={(event) =>
+                      setContent((current) => ({
+                        ...current,
+                        texts: { ...current.texts, finalCtaButton: event.target.value },
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+            </section>
+          )}
 
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Videos y enlaces</h2>
-        </div>
-        <div className="booking-form-grid">
-          <label>
-            YouTube hero (url o id)
-            <input
-              type="text"
-              value={content.media.heroYoutubeUrl}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  media: { ...current.media, heroYoutubeUrl: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            YouTube seccion experiencia (url o id)
-            <input
-              type="text"
-              value={content.media.storyYoutubeUrl}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  media: { ...current.media, storyYoutubeUrl: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            Perfil de Instagram
-            <input
-              type="text"
-              value={content.media.instagramProfileUrl}
-              onChange={(event) =>
-                setContent((current) => ({
-                  ...current,
-                  media: { ...current.media, instagramProfileUrl: event.target.value },
-                }))
-              }
-            />
-          </label>
-          <label>
-            Links de Instagram (1 por linea)
-            <textarea rows={6} value={instagramLines} onChange={(event) => setInstagramLines(event.target.value)} />
-          </label>
-          <label>
-            Videos directos de Instagram (mp4, 1 por linea)
-            <textarea
-              rows={6}
-              value={instagramVideoLines}
-              onChange={(event) => setInstagramVideoLines(event.target.value)}
-            />
-          </label>
-          <label>
-            Links de YouTube para galeria (1 por linea)
-            <textarea
-              rows={6}
-              value={youtubeGalleryLines}
-              onChange={(event) => setYoutubeGalleryLines(event.target.value)}
-            />
-          </label>
-        </div>
-      </section>
+          {/* Bloques Section */}
+          {activeSection === "bloques" && (
+            <section className="admin-panel">
+              <h2>Bloques de conversión</h2>
+              <p className="admin-panel-desc">Gestiona testimonios, comparativos, preguntas frecuentes y bullets del hero.</p>
+              <div className="booking-form-grid">
+                <label>
+                  Hero bullets (1 por línea)
+                  <textarea rows={4} value={heroPointsLines} onChange={(event) => setHeroPointsLines(event.target.value)} />
+                </label>
+                <label>
+                  Testimonios (formato: "cita | autor")
+                  <textarea rows={6} value={testimonialLines} onChange={(event) => setTestimonialLines(event.target.value)} />
+                </label>
+                <label>
+                  Comparativo (formato: "factor | Barranquito | Competencia")
+                  <textarea rows={6} value={comparisonLines} onChange={(event) => setComparisonLines(event.target.value)} />
+                </label>
+                <label>
+                  FAQs (formato: "pregunta | respuesta")
+                  <textarea rows={6} value={faqLines} onChange={(event) => setFaqLines(event.target.value)} />
+                </label>
+              </div>
+            </section>
+          )}
 
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Biblioteca interna de medios</h2>
-        </div>
-        <div className="booking-form-grid">
-          <label>
-            Subir imagenes o videos al volumen
-            <input type="file" multiple accept="image/*,video/*" onChange={(event) => uploadFiles(event.target.files)} />
-          </label>
-        </div>
-        <p style={{ margin: "0.7rem 0 0.9rem", opacity: 0.82 }}>
-          Usa los botones de cada archivo para enviarlo al hero, seccion experiencia o galeria.
-        </p>
-        <div className="admin-library-grid">
-          {mediaLibrary.map((file) => (
-            <article key={file.name} className="admin-library-card">
-              <MediaPreview file={file} />
-              <strong>{file.name}</strong>
-              <small>{file.mimeType}</small>
-              <div className="admin-library-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => useFileInHero(file)}>
-                  Usar en hero
-                </button>
-                <button type="button" className="btn btn-secondary" onClick={() => useFileInStory(file)}>
-                  Usar en experiencia
-                </button>
-                <button type="button" className="btn btn-secondary" onClick={() => addFileToGallery(file)}>
-                  Agregar a galeria
-                </button>
-                <button type="button" className="btn btn-secondary" onClick={() => deleteFile(file)}>
-                  Eliminar
+          {/* Precios Section */}
+          {activeSection === "precios" && (
+            <section className="admin-panel">
+              <h2>Precios y paquetes</h2>
+              <p className="admin-panel-desc">Configura tarifas y paquetes que alimentan el cotizador de la landing.</p>
+              <div className="booking-form-grid">
+                <label>
+                  Tarifa clase grupal (S/.)
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={content.pricing.groupRate}
+                    onChange={(event) => {
+                      const value = Number.parseInt(event.target.value, 10);
+                      setContent((current) => ({
+                        ...current,
+                        pricing: {
+                          ...current.pricing,
+                          groupRate: Number.isFinite(value) ? value : current.pricing.groupRate,
+                        },
+                      }));
+                    }}
+                  />
+                </label>
+                <label>
+                  Tarifa clase personalizada (S/.)
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={content.pricing.privateRate}
+                    onChange={(event) => {
+                      const value = Number.parseInt(event.target.value, 10);
+                      setContent((current) => ({
+                        ...current,
+                        pricing: {
+                          ...current.pricing,
+                          privateRate: Number.isFinite(value) ? value : current.pricing.privateRate,
+                        },
+                      }));
+                    }}
+                  />
+                </label>
+                <label>
+                  Paquetes (formato: "clases | descuento decimal")
+                  <textarea rows={6} value={pricingLines} onChange={(event) => setPricingLines(event.target.value)} />
+                </label>
+              </div>
+            </section>
+          )}
+
+          {/* Playas Section */}
+          {activeSection === "playas" && (
+            <section className="admin-panel">
+              <h2>Playas para modal</h2>
+              <p className="admin-panel-desc">Gestiona información detallada de cada playa que aparece en el modal.</p>
+              <div style={{ display: "grid", gap: "1.2rem" }}>
+                {beachesDraft.map((beach, index) => (
+                  <article key={`beach-${index}`} className="admin-beach-card">
+                    <div className="admin-beach-header">
+                      <strong>{beach.name || "Playa sin nombre"}</strong>
+                      <div className="admin-beach-controls">
+                        <button type="button" className="admin-beach-btn" onClick={() => moveBeach(index, -1)} title="Subir">↑</button>
+                        <button type="button" className="admin-beach-btn" onClick={() => moveBeach(index, 1)} title="Bajar">↓</button>
+                        <button type="button" className={`admin-beach-btn${beach.main ? " is-main" : ""}`} onClick={() => setMainBeach(index)} title="Principal">★</button>
+                        <button type="button" className="admin-beach-btn admin-beach-btn-danger" onClick={() => removeBeach(index)} title="Eliminar">✕</button>
+                      </div>
+                    </div>
+                    <div className="booking-form-grid">
+                      <label>
+                        Nombre
+                        <input
+                          type="text"
+                          value={beach.name}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({ ...current, name: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Imagen (URL o /media/...)
+                        <input
+                          type="text"
+                          value={beach.image}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({ ...current, image: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Alt de imagen
+                        <input
+                          type="text"
+                          value={beach.alt}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({ ...current, alt: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Nivel recomendado
+                        <input
+                          type="text"
+                          value={beach.level}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({ ...current, level: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Mejor ventana
+                        <input
+                          type="text"
+                          value={beach.bestWindow}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({ ...current, bestWindow: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Link Google Maps
+                        <input
+                          type="text"
+                          value={beach.googleMapsUrl}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({ ...current, googleMapsUrl: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Descripción
+                        <textarea
+                          rows={3}
+                          value={beach.description}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({ ...current, description: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Tips (1 por línea)
+                        <textarea
+                          rows={4}
+                          value={toLines(beach.tips)}
+                          onChange={(event) =>
+                            updateBeach(index, (current) => ({
+                              ...current,
+                              tips: parseLines(event.target.value),
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+                  </article>
+                ))}
+                <button
+                  className="btn btn-secondary"
+                  type="button"
+                  onClick={() => setBeachesDraft((current) => [...current, createEmptyBeach()])}
+                >
+                  + Agregar playa
                 </button>
               </div>
-            </article>
-          ))}
-          {mediaLibrary.length === 0 && <p style={{ opacity: 0.75 }}>No hay archivos en la biblioteca todavia.</p>}
-        </div>
-      </section>
+            </section>
+          )}
 
-      <section className="card-section" style={{ marginTop: "1.5rem" }}>
-        <div className="section-head">
-          <h2>Galeria de imagenes</h2>
-        </div>
-        <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
-          Formato por linea: URL | ALT. Ejemplo: /media/session-a.svg | Alumno entrando al agua
-        </p>
-        <div className="booking-form-grid">
-          <label>
-            Imagenes de galeria
-            <textarea rows={8} value={imageLines} onChange={(event) => setImageLines(event.target.value)} />
-          </label>
-        </div>
-      </section>
+          {/* Media Section */}
+          {activeSection === "media" && (
+            <section className="admin-panel">
+              <h2>Videos y medios</h2>
+              <p className="admin-panel-desc">Configura videos de YouTube, Instagram y otros medios para diferentes secciones de la landing.</p>
 
-      <div className="cta-row" style={{ marginTop: "1.4rem" }}>
-        <button className="btn btn-primary" type="button" onClick={saveChanges} disabled={isSaving}>
-          {isSaving ? "Guardando..." : "Guardar cambios"}
-        </button>
-        <button className="btn btn-secondary" type="button" onClick={resetToDefault} disabled={isSaving}>
-          Restaurar defaults
-        </button>
-        <a className="btn btn-secondary" href="/" target="_blank" rel="noopener noreferrer">
-          Ver landing
-        </a>
-        {isUploading && <span style={{ alignSelf: "center" }}>Subiendo archivos...</span>}
+              {/* Hero Video */}
+              <div className="admin-panel-section">
+                <h3>🎬 Video Hero (Portada)</h3>
+                <div className="booking-form-grid">
+                  <label>
+                    YouTube URL o ID
+                    <input
+                      type="text"
+                      placeholder="https://youtube.com/watch?v=... o dQw4w9WgXcQ"
+                      value={content.media.heroYoutubeUrl}
+                      onChange={(event) =>
+                        setContent((current) => ({
+                          ...current,
+                          media: { ...current.media, heroYoutubeUrl: event.target.value },
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
+                {content.media.heroYoutubeUrl && (
+                  <div className="admin-video-preview">
+                    <div style={{ aspectRatio: "16 / 9", background: "#000" }}>
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={`https://www.youtube.com/embed/${content.media.heroYoutubeUrl.split("v=")[1]?.split("&")[0] || content.media.heroYoutubeUrl}`}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{ borderRadius: "0.6rem" }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Story Video */}
+              <div className="admin-panel-section">
+                <h3>🎥 Video Experiencia</h3>
+                <div className="booking-form-grid">
+                  <label>
+                    YouTube URL o ID
+                    <input
+                      type="text"
+                      placeholder="https://youtube.com/watch?v=... o dQw4w9WgXcQ"
+                      value={content.media.storyYoutubeUrl}
+                      onChange={(event) =>
+                        setContent((current) => ({
+                          ...current,
+                          media: { ...current.media, storyYoutubeUrl: event.target.value },
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
+                {content.media.storyYoutubeUrl && (
+                  <div className="admin-video-preview">
+                    <div style={{ aspectRatio: "16 / 9", background: "#000" }}>
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={`https://www.youtube.com/embed/${content.media.storyYoutubeUrl.split("v=")[1]?.split("&")[0] || content.media.storyYoutubeUrl}`}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{ borderRadius: "0.6rem" }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Gallery Videos */}
+              <div className="admin-panel-section">
+                <h3>🖼️ Videos para galería</h3>
+                <p style={{ margin: "0 0 0.8rem", opacity: 0.8, fontSize: "0.9rem" }}>
+                  URLs o IDs de YouTube (1 por línea). Se mostrarán en la galería de la landing.
+                </p>
+                <div className="booking-form-grid">
+                  <label>
+                    Links de YouTube
+                    <textarea
+                      rows={4}
+                      placeholder="https://youtube.com/watch?v=dQw4w9WgXcQ&#10;O solo el ID: dQw4w9WgXcQ&#10;Un link por línea"
+                      value={youtubeGalleryLines}
+                      onChange={(event) => setYoutubeGalleryLines(event.target.value)}
+                    />
+                  </label>
+                </div>
+                {youtubeGalleryLines && (
+                  <div className="admin-gallery-preview">
+                    {youtubeGalleryLines
+                      .split("\n")
+                      .map((line) => line.trim())
+                      .filter(Boolean)
+                      .map((url, idx) => {
+                        const videoId = url.split("v=")[1]?.split("&")[0] || url;
+                        return (
+                          <div key={idx} className="admin-gallery-item">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              src={`https://www.youtube.com/embed/${videoId}`}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              style={{ borderRadius: "0.6rem" }}
+                            />
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+
+              {/* Instagram */}
+              <div className="admin-panel-section">
+                <h3>📱 Instagram</h3>
+                <div className="booking-form-grid">
+                  <label>
+                    Perfil de Instagram
+                    <input
+                      type="text"
+                      placeholder="@tu_handle o nombre de usuario"
+                      value={content.media.instagramProfileUrl}
+                      onChange={(event) =>
+                        setContent((current) => ({
+                          ...current,
+                          media: { ...current.media, instagramProfileUrl: event.target.value },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label>
+                    Links de posts (1 por línea)
+                    <textarea
+                      rows={4}
+                      placeholder="https://instagram.com/p/...&#10;Un link por línea"
+                      value={instagramLines}
+                      onChange={(event) => setInstagramLines(event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Videos MP4 (URLs directas, 1 por línea)
+                    <textarea
+                      rows={4}
+                      placeholder="https://ejemplo.com/video.mp4&#10;Archivos de video directos"
+                      value={instagramVideoLines}
+                      onChange={(event) => setInstagramVideoLines(event.target.value)}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Media Library */}
+              <div className="admin-panel-section">
+                <h3>📚 Biblioteca de medios</h3>
+                <p style={{ margin: "0 0 1rem", opacity: 0.85, fontSize: "0.9rem" }}>
+                  Sube archivos aquí. Puedes asignarlos como hero, experiencia o agregarlos a galería. Máx 5MB por archivo.
+                </p>
+                <div className="booking-form-grid">
+                  <label>
+                    Subir imágenes o videos
+                    <input 
+                      type="file" 
+                      multiple 
+                      accept="image/*,video/*" 
+                      onChange={(event) => uploadFiles(event.target.files)} 
+                      style={{ padding: "0.6rem", cursor: "pointer" }}
+                    />
+                  </label>
+                </div>
+                {isUploading && (
+                  <p style={{ marginTop: "0.6rem", color: "var(--accent)", fontWeight: 600 }}>⏳ Subiendo archivos...</p>
+                )}
+                {mediaLibrary.length > 0 && (
+                  <p style={{ marginTop: "1rem", opacity: 0.8, fontSize: "0.9rem" }}>
+                    {mediaLibrary.length} archivo{mediaLibrary.length !== 1 ? "s" : ""} en biblioteca
+                  </p>
+                )}
+                <div className="admin-media-grid" style={{ marginTop: "1.5rem" }}>
+                  {mediaLibrary.map((file) => (
+                    <div key={file.name} className="admin-media-card">
+                      <MediaPreview file={file} />
+                      <div className="admin-media-info">
+                        <strong title={file.name}>{file.name.substring(0, 20)}</strong>
+                        <small>{(file.size / 1024).toFixed(1)}KB</small>
+                      </div>
+                      <div className="admin-media-actions">
+                        <button 
+                          type="button" 
+                          className="admin-media-action" 
+                          onClick={() => useFileInHero(file)} 
+                          title="Usar en hero"
+                        >
+                          🎬
+                        </button>
+                        <button 
+                          type="button" 
+                          className="admin-media-action" 
+                          onClick={() => useFileInStory(file)} 
+                          title="Usar en experiencia"
+                        >
+                          🎥
+                        </button>
+                        <button 
+                          type="button" 
+                          className="admin-media-action" 
+                          onClick={() => addFileToGallery(file)} 
+                          title="Agregar a galería"
+                        >
+                          🖼️
+                        </button>
+                        <button 
+                          type="button" 
+                          className="admin-media-action admin-media-action-delete" 
+                          onClick={() => deleteFile(file)} 
+                          title="Eliminar"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {mediaLibrary.length === 0 && (
+                  <p style={{ marginTop: "2rem", opacity: 0.6, textAlign: "center", padding: "2rem 0" }}>
+                    📁 Sin archivos aún. Sube imágenes o videos para empezar.
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Galeria Section */}
+          {activeSection === "galeria" && (
+            <section className="admin-panel">
+              <h2>Galería de imágenes</h2>
+              <p className="admin-panel-desc">Gestiona las imágenes que aparecen en la galería de la landing. Puedes agregar, editar y reordenar.</p>
+
+              {/* Gallery Items */}
+              <div className="admin-gallery-editor">
+                {content.media.galleryImages.length > 0 ? (
+                  <div className="admin-gallery-list">
+                    {content.media.galleryImages.map((image, index) => (
+                      <div key={index} className="admin-gallery-edit-card">
+                        <div className="admin-gallery-edit-preview">
+                          {image.src && (
+                            <img 
+                              src={image.src} 
+                              alt={image.alt || "Galería"} 
+                              onError={(e) => {
+                                e.currentTarget.style.background = "rgba(0, 0, 0, 0.1)";
+                              }}
+                            />
+                          )}
+                        </div>
+                        <div className="admin-gallery-edit-form">
+                          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.8rem" }}>
+                            <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "rgba(16, 33, 45, 0.6)" }}>
+                              #{index + 1}
+                            </span>
+                            <div style={{ flex: 1 }} />
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                className="admin-gallery-reorder-btn"
+                                onClick={() =>
+                                  setContent((current) => {
+                                    const newImages = [...current.media.galleryImages];
+                                    [newImages[index], newImages[index - 1]] = [newImages[index - 1], newImages[index]];
+                                    return { ...current, media: { ...current.media, galleryImages: newImages } };
+                                  })
+                                }
+                                title="Mover arriba"
+                              >
+                                ⬆️
+                              </button>
+                            )}
+                            {index < content.media.galleryImages.length - 1 && (
+                              <button
+                                type="button"
+                                className="admin-gallery-reorder-btn"
+                                onClick={() =>
+                                  setContent((current) => {
+                                    const newImages = [...current.media.galleryImages];
+                                    [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+                                    return { ...current, media: { ...current.media, galleryImages: newImages } };
+                                  })
+                                }
+                                title="Mover abajo"
+                              >
+                                ⬇️
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="admin-gallery-delete-btn"
+                              onClick={() =>
+                                setContent((current) => ({
+                                  ...current,
+                                  media: {
+                                    ...current.media,
+                                    galleryImages: current.media.galleryImages.filter((_, i) => i !== index),
+                                  },
+                                }))
+                              }
+                              title="Eliminar imagen"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <label className="admin-gallery-field">
+                            <span>URL de imagen</span>
+                            <input
+                              type="text"
+                              placeholder="https://ejemplo.com/imagen.jpg"
+                              value={image.src}
+                              onChange={(event) =>
+                                setContent((current) => {
+                                  const newImages = [...current.media.galleryImages];
+                                  newImages[index] = { ...newImages[index], src: event.target.value };
+                                  return { ...current, media: { ...current.media, galleryImages: newImages } };
+                                })
+                              }
+                            />
+                          </label>
+                          <label className="admin-gallery-field">
+                            <span>Texto ALT (descripción)</span>
+                            <input
+                              type="text"
+                              placeholder="Describe la imagen para accesibilidad"
+                              value={image.alt}
+                              onChange={(event) =>
+                                setContent((current) => {
+                                  const newImages = [...current.media.galleryImages];
+                                  newImages[index] = { ...newImages[index], alt: event.target.value };
+                                  return { ...current, media: { ...current.media, galleryImages: newImages } };
+                                })
+                              }
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center", padding: "2rem 1rem", opacity: 0.6 }}>
+                    <p style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>🖼️ Sin imágenes aún</p>
+                    <p style={{ fontSize: "0.9rem" }}>Agrega imágenes para llenar la galería</p>
+                  </div>
+                )}
+
+                {/* Add New Image Button */}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() =>
+                    setContent((current) => ({
+                      ...current,
+                      media: {
+                        ...current.media,
+                        galleryImages: [...current.media.galleryImages, { src: "", alt: "" }],
+                      },
+                    }))
+                  }
+                  style={{ width: "100%", marginTop: content.media.galleryImages.length > 0 ? "1.5rem" : "0" }}
+                >
+                  + Agregar imagen
+                </button>
+              </div>
+
+              {/* Bulk Import */}
+              <div className="admin-panel-section" style={{ marginTop: "2rem" }}>
+                <h3>📋 Importar en lote</h3>
+                <p style={{ margin: "0 0 0.8rem", opacity: 0.8, fontSize: "0.9rem" }}>
+                  Pega múltiples URLs en el formato <code>URL | ALT</code> (una por línea)
+                </p>
+                <div className="booking-form-grid">
+                  <label>
+                    Imágenes (una por línea)
+                    <textarea
+                      rows={6}
+                      placeholder="https://ejemplo.com/foto1.jpg | Descripción 1&#10;https://ejemplo.com/foto2.jpg | Descripción 2&#10;https://ejemplo.com/foto3.jpg | Descripción 3"
+                      value={imageLines}
+                      onChange={(event) => setImageLines(event.target.value)}
+                    />
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    const newImages = parseImageLines(imageLines);
+                    setContent((current) => ({
+                      ...current,
+                      media: {
+                        ...current.media,
+                        galleryImages: [...current.media.galleryImages, ...newImages],
+                      },
+                    }));
+                    setImageLines("");
+                  }}
+                  disabled={!imageLines.trim()}
+                  style={{ marginTop: "0.8rem", opacity: imageLines.trim() ? 1 : 0.5 }}
+                >
+                  ✓ Importar {parseImageLines(imageLines).length} imagen{parseImageLines(imageLines).length !== 1 ? "s" : ""}
+                </button>
+              </div>
+
+              {/* Export */}
+              {content.media.galleryImages.length > 0 && (
+                <div className="admin-panel-section" style={{ marginTop: "1.5rem" }}>
+                  <h3>📤 Exportar</h3>
+                  <p style={{ margin: "0 0 0.8rem", opacity: 0.8, fontSize: "0.9rem" }}>
+                    Copia todo como texto para respaldar o editar en otro lugar:
+                  </p>
+                  <textarea
+                    readOnly
+                    rows={4}
+                    value={imageLines}
+                    style={{
+                      padding: "0.8rem",
+                      border: "1px solid rgba(0, 0, 0, 0.12)",
+                      borderRadius: "0.6rem",
+                      fontFamily: "monospace",
+                      fontSize: "0.85rem",
+                      background: "rgba(255, 255, 255, 0.6)",
+                      cursor: "text",
+                    }}
+                  />
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Notice */}
+          {notice !== "idle" && (
+            <div className={`admin-notice admin-notice-${notice}`}>
+              {notice === "saved" && "✓ Cambios guardados"}
+              {notice === "reset" && "↻ Configuración restaurada"}
+              {notice === "error" && "✕ Error"}
+              {noticeMessage && <span>{noticeMessage}</span>}
+            </div>
+          )}
+        </main>
       </div>
-
-      {notice !== "idle" && <p style={{ marginTop: "0.8rem" }}>{noticeMessage}</p>}
-    </main>
+    </div>
   );
 }
